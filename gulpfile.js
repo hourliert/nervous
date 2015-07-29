@@ -1,3 +1,5 @@
+/// <reference path="./typings/tsd.d.ts" />
+
 var gulp        = require('gulp'),
     ts          = require('gulp-typescript'),
     merge       = require('merge-stream'),
@@ -9,8 +11,9 @@ var gulp        = require('gulp'),
     mocha       = require('gulp-mocha'),
     del         = require('del'),
     runSequence = require('run-sequence'),
-    tsd         = require('gulp-tsd');
- 
+    tsd         = require('gulp-tsd'),
+    nodemon     = require('gulp-nodemon');
+    
 var PATHS = {
   src: 'lib',
   build: 'build',
@@ -36,7 +39,6 @@ gulp.task('clean:tsd', function (cb) {
   ], cb);
 });
 
-
 gulp.task('scripts:dev', function() {
   var tsResult = gulp.src([
       PATHS.src + '/**/*.ts',
@@ -52,8 +54,21 @@ gulp.task('scripts:dev', function() {
   ]);
 });
 
-gulp.task('watch', ['scripts:dev'], function() {
-    gulp.watch(PATHS.src + '/**/*.ts', ['scripts']);
+gulp.task('run', ['scripts:dev'], function() {
+    nodemon({
+      script: 'index.js'
+    })
+    .on('exit', function () {
+      process.exit(0);
+    });;
+});
+
+gulp.task('run:watch', ['scripts:dev'], function() {
+    gulp.watch(PATHS.src + '/**/*.ts', ['scripts:dev']);
+    
+    nodemon({
+      script: 'index.js'
+    });
 });
 
 gulp.task('clean:dev', function (cb) {
@@ -71,6 +86,13 @@ gulp.task('test', ['scripts:dev'], function () {
     .pipe(mocha({
       reporter: 'spec'
     }));
+});
+
+gulp.task('test:watch', ['test'], function() {
+    gulp.watch([
+      PATHS.src + '/**/*.ts',
+      PATHS.test + '/**/*.ts'
+    ], ['test']);
 });
 
 /**
@@ -105,7 +127,6 @@ gulp.task('clean', ['clean:dev', 'clean:prod', 'clean:tsd']);
 /**
  * Default
  */
-
 gulp.task('default', function (cb) {
   runSequence(
     'clean',

@@ -1,1 +1,1 @@
-export var NervousName = 'Tho mas';
+export var NervousName = 'Tho ma s';

@@ -1,4 +1,4 @@
-import {NervousName} from 'core/core';
+import {NervousName} from './core/core';
 
 export class Nervous {
   constructor (public name = NervousName) {
