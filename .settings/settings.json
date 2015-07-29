@@ -1,0 +1,8 @@
+{
+  "files.exclude": {
+		"lib/**/*.js": true,
+		"test/**/*.js": true,
+    "build": true,
+    "node_modules": true
+	}
+}
