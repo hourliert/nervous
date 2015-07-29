@@ -8,12 +8,14 @@ var gulp        = require('gulp'),
     filter      = require('gulp-filter'),
     mocha       = require('gulp-mocha'),
     del         = require('del'),
-    runSequence = require('run-sequence');
+    runSequence = require('run-sequence'),
+    tsd         = require('gulp-tsd');
  
 var PATHS = {
   src: 'lib',
   build: 'build',
-  test: 'test'
+  test: 'test',
+  typings: 'typings'
 };
  
 var tsProject = ts.createProject('tsconfig.json', { sortOutput: true });
@@ -21,6 +23,20 @@ var tsProject = ts.createProject('tsconfig.json', { sortOutput: true });
 /**
  * Dev tasks
  */
+gulp.task('tsd', function (callback) {
+  tsd({
+    command: 'reinstall',
+    config: './tsd.json'
+  }, callback);
+});
+
+gulp.task('clean:tsd', function (cb) {
+  del([
+    PATHS.typings
+  ], cb);
+});
+
+
 gulp.task('scripts:dev', function() {
   var tsResult = gulp.src([
       PATHS.src + '/**/*.ts',
@@ -84,7 +100,7 @@ gulp.task('clean:prod', function (cb) {
 /**
  * Cleaning
  */
-gulp.task('clean', ['clean:dev', 'clean:prod']);
+gulp.task('clean', ['clean:dev', 'clean:prod', 'clean:tsd']);
 
 /**
  * Default
@@ -93,8 +109,20 @@ gulp.task('clean', ['clean:dev', 'clean:prod']);
 gulp.task('default', function (cb) {
   runSequence(
     'clean',
+    'tsd',
     'test',
     'scripts:prod'
+  );
+});
+
+/**
+ * CI
+ */
+gulp.task('ci', function (cb) {
+  runSequence(
+    'clean',
+    'tsd',
+    'test'
   );
 });
 
