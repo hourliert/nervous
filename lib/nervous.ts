@@ -1,9 +1,15 @@
-import {NervousName} from './core/core';
+import {sigmoid, sigmoidPrime} from './utils/sigmoid';
+import {ConstantMatrix, Matrix} from './utils/matrix';
+
+export interface INervousOptions {
+  hiddenLayers?: number
+}
 
 export class Nervous {
-  constructor (public name = NervousName) {
+  public test: Matrix;
+  constructor (
+    public options?: INervousOptions
+  ) {
     
   }
 }
-
-console.log('hi ' + (new Nervous()).name);
