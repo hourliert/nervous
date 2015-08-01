@@ -5,8 +5,11 @@ export interface IConstantMatrix {
   columns: number;
   value?: number;
 }
-export interface ICellApplicator extends Function {
-  (value: number, i: number, j: number);
+export interface ICellProcedure extends Function {
+  (value: number, i?: number, j?: number);
+}
+export interface ICellFunction extends Function {
+  (value: number, i?: number, j?: number): number;
 }
 
 export class Matrix {
@@ -36,7 +39,23 @@ export class Matrix {
     }
   }
   
-  public forEachCell (func: ICellApplicator) {
+  static copy (m: Matrix): Matrix {
+    let i, j,
+        result: Matrix = new ConstantMatrix({
+          rows: m.numRows, 
+          columns: m.numCols
+        });
+    
+    for (i = 0; i < m.numRows; i++) {
+      for (j = 0; j < m.numCols; j++) {
+        result[i][j] = m[i][j];
+      }
+    }
+    
+    return result;
+  }
+  
+  public forEachCell (func: ICellProcedure): Matrix {
     let i, j;
     
     for (i = 0; i < this.numRows; i++) {
@@ -45,6 +64,43 @@ export class Matrix {
       }
     }
     
+    return this;
+  }
+  
+  static forEachCell (m: Matrix, func: ICellProcedure): Matrix {
+    let i, j;
+    
+    for (i = 0; i < m.numRows; i++) {
+      for (j = 0; j < m.numCols; j++) {
+        func(m[i][j], i, j);
+      }
+    }
+    
+    return m;
+  }
+  
+  public map (func: ICellFunction): Matrix {
+    let i, j;
+    
+    for (i = 0; i < this.numRows; i++) {
+      for (j = 0; j < this.numCols; j++) {
+        this[i][j] = func(this[i][j], i, j);
+      }
+    }
+    
+    return this;
+  }
+  
+  static map (m: Matrix, func: ICellFunction): Matrix {
+    let i, j;
+    
+    for (i = 0; i < m.numRows; i++) {
+      for (j = 0; j < m.numCols; j++) {
+        m[i][j] = func(m[i][j], i, j);
+      }
+    }
+    
+    return m;
   }
   
   public add (m: Matrix): Matrix {
@@ -113,13 +169,13 @@ export class Matrix {
         }),
         i, j, k;
 
-    for (i = 0; i < m.numRows; i++) {
+    for (i = 0; i < this.numRows; i++) {
       
-      for (j = 0; j < this.numCols; j++) {
+      for (j = 0; j < m.numCols; j++) {
         
         let sum = 0;
-        for (k = 0; k < this.numRows; k++) {
-          sum += this[k][j] * m[i][k];
+        for (k = 0; k < this.numCols; k++) {
+          sum += this[i][k] * m[k][j];
         } 
         result[i][j] = sum;
         
@@ -136,18 +192,18 @@ export class Matrix {
   
   static multiply (m1: Matrix, m2: Matrix): Matrix {
     let result: Matrix = new ConstantMatrix({
-          rows: m2.numRows, 
-          columns: m1.numCols
+          rows: m1.numRows, 
+          columns: m2.numCols
         }),
         i, j, k;
 
-    for (i = 0; i < m2.numRows; i++) {
+    for (i = 0; i < m1.numRows; i++) {
       
-      for (j = 0; j < m1.numCols; j++) {
+      for (j = 0; j < m2.numCols; j++) {
         
         let sum = 0;
-        for (k = 0; k < m1.numRows; k++) {
-          sum += m1[k][j] * m2[i][k];
+        for (k = 0; k < m1.numCols; k++) {
+          sum += m1[i][k] * m2[k][j];
         } 
         result[i][j] = sum;
         
