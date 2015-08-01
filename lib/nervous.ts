@@ -1,5 +1,6 @@
 import {sigmoid, sigmoidPrime} from './utils/sigmoid';
 import {ConstantMatrix, PlainMatrix, Matrix} from './utils/matrix';
+import {zeros, add, sub} from './utils/array';
 
 export class Nervous {
   public weights: Matrix[];
@@ -49,8 +50,41 @@ export class Nervous {
       this.weights[k] = new PlainMatrix(weights[k]);
     }
   }
+  
+  public exportWeights (): Array<number> {
+    
+    let ret: Array<number> = [],
+        k;
+    
+    for (k = 0; k < this.weights.length; k++) {
+      this.weights[k].forEachCell((x) => {
+        ret.push(x);
+      });
+    }
+    
+    
+    return ret;
+  }
+  
+  public importWeights (weights: Array<number>): Matrix[] {
+    
+    if (weights.length !== this.numberOfGradients()) {
+      throw new Error(`Imported weight size differ from the needed size (${this.numberOfGradients()})`);
+    }
+    
+    let k,
+        cpt = 0;
+    
+    for (k = 0; k < this.weights.length; k++) {
+      this.weights[k].forEachCell((x, i, j) => {
+        this.weights[k][i][j] = weights[cpt++];
+      });
+    }
+    
+    return this.weights;
+  }
 
-  public forward(input: Matrix): Matrix {
+  public forward (input: Matrix): Matrix {
     let yHat,
       k;
       
@@ -127,9 +161,77 @@ export class Nervous {
         
       }
       
-    }
-    
+    }    
     return changes;
     
   }
+  
+  public numberOfGradients (): number {
+    
+    let k,
+        sum = 0;
+    
+    for (k = 0; k < this.weights.length; k++) {
+      sum += this.weights[k].numCols * this.weights[k].numRows;
+    }
+    return sum;
+    
+  }
+  
+  public computeGradients (input: Matrix, output: Matrix): Array<number> {
+    
+    let dJdW: Matrix[] = this.costPrime(input, output),
+        ret: Array<number> = [],
+        k;
+    
+    for (k = 0; k < dJdW.length; k++) {
+      dJdW[k].forEachCell((x) => {
+        ret.push(x);
+      });
+    }
+    return ret;
+       
+  }
+  
+  public adjustWeights (dJdW: Matrix[]): Matrix[] {
+    
+    for (let i = 0; i < this.weights.length; i++) {
+      this.weights[i].add(dJdW[i]);
+    }
+    return this.weights;
+    
+  }
+  
+}
+
+export function computeNumericalGradients (n: Nervous, input: Matrix, output: Matrix) {
+  
+  let epsilon = 1e-4,
+      initialWeights = n.exportWeights(),
+      numGrads: number = n.numberOfGradients(),
+      gradients: Array<number> = zeros(numGrads),
+      perturb: Array<number> = zeros(numGrads),
+      k;
+      
+  for (k = 0; k < numGrads; k++) {
+    
+    let loss1, loss2;
+    
+    perturb[k] = epsilon;
+    n.importWeights(add(initialWeights, perturb));
+    loss2 = n.cost(input, output);
+    
+    n.importWeights(sub(initialWeights, perturb));
+    loss1 = n.cost(input, output)
+
+    gradients[k] = (loss2 - loss1) / (2*epsilon);
+
+    perturb[k] = 0;
+    
+  }
+  
+  n.importWeights(initialWeights);
+  
+  return gradients;
+  
 }
