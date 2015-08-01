@@ -265,12 +265,12 @@ export class Matrix {
   
   public transpose (): Matrix {
     let result = new ConstantMatrix({
-      rows: this.numRows, 
-      columns: this.numCols
+      rows: this.numCols, 
+      columns: this.numRows
     });
     
     this.forEachCell((x, i, j) => {
-      result[i][j] = this[j][i];
+      result[j][i] = this[i][j];
     });
     result.forEachCell((x, i, j) => {
       this[i][j] = x;
@@ -281,12 +281,12 @@ export class Matrix {
   
   static transpose (m: Matrix): Matrix {
     let result = new ConstantMatrix({
-      rows: m.numRows, 
-      columns: m.numCols
+      rows: m.numCols, 
+      columns: m.numRows
     });
     
     m.forEachCell((x, i, j) => {
-      result[i][j] = m[j][i];
+      result[j][i] = m[i][j];
     });
 
     return result;

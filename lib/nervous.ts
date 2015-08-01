@@ -3,6 +3,8 @@ import {ConstantMatrix, PlainMatrix, Matrix} from './utils/matrix';
 
 export class Nervous {
   public weights: Matrix[];
+  public computed: Matrix[];
+  public activated: Matrix[];
   public layer: number;
 
   constructor(
@@ -15,6 +17,8 @@ export class Nervous {
       iterations = this.layer = hiddenLayer.length + 1;
 
     this.weights = [];
+    this.computed = [];
+    this.activated = [];
 
     for (k = 0; k < iterations; k++) {
 
@@ -35,7 +39,7 @@ export class Nervous {
         for (j = 0; j < nextSize; j++) {
           weights[k] = weights[k] || [];
           weights[k][i] = weights[k][i] || [];
-          weights[k][i][j] = Math.random();
+          weights[k][i][j] = Math.random() + 0.4 + 0.2;
         }
       }
 
@@ -48,10 +52,8 @@ export class Nervous {
 
   public forward(input: Matrix): Matrix {
     let yHat,
-      k,
-      Z: Matrix[] = [],
-      A: Matrix[] = [];
-
+      k;
+      
     for (k = 0; k < this.weights.length; k++) {
       let currentMatrix: Matrix, nextMatrix: Matrix;
 
@@ -59,16 +61,75 @@ export class Nervous {
         currentMatrix = input;
         nextMatrix = this.weights[k];
       } else {
-        currentMatrix = A[k - 1];
+        currentMatrix = this.activated[k - 1];
         nextMatrix = this.weights[k];
       }
       
-      Z[k] = Matrix.multiply(currentMatrix, nextMatrix);
-      A[k] = Matrix.copy(Z[k]).map(sigmoid);
+      this.computed[k] = Matrix.multiply(currentMatrix, nextMatrix);
+      this.activated[k] = Matrix.copy(this.computed[k]).map(sigmoid);
       
     }
 
-    return A[k - 1];
+    return this.activated[k - 1];
   }
-
+  
+  public cost (input: Matrix, output: Matrix): number {
+    let yHat = this.forward(input),
+        i,
+        cost = 0,
+        difference: Matrix = Matrix.sub(output, yHat);
+         
+    difference.map((x) => Math.pow(x, 2));
+    
+    for (i = 0; i < difference.numRows; i++) {
+      cost += difference[i][0];
+    }
+    
+    cost = 0.5 * cost;
+    return cost;
+  }
+  
+  public costPrime(input: Matrix, output: Matrix): Matrix[] {
+    let yHat = this.forward(input),
+        difference = Matrix.sub(yHat, output),
+        i,
+        changes: Matrix[] = [],
+        deltas: Matrix[] = [];
+        
+    for (i = this.weights.length - 1; i >= 0; i--) {
+      
+      let currentMatrix: Matrix, nextMatrix: Matrix;
+      if (i === this.weights.length - 1) {
+        
+        deltas[i] = Matrix.multiplyElement(
+          difference, 
+          Matrix.copy(this.computed[i]).map(sigmoidPrime)
+        );
+        changes[i] = Matrix.multiply(Matrix.transpose(this.activated[i - 1]), deltas[i]);    
+        
+      } else if (i === 0) {
+      
+        deltas[i] = Matrix.multiply(
+          deltas[i + 1],          
+          Matrix.transpose(this.weights[i + 1])
+        );
+        deltas[i].multiplyElement(Matrix.copy(this.computed[i]).map(sigmoidPrime));
+        changes[i] = Matrix.multiply(Matrix.transpose(input), deltas[i]); 
+        
+      } else {
+        
+        deltas[i] = Matrix.multiply(
+          deltas[i + 1],
+          Matrix.transpose(this.weights[i + 1])
+        );
+        deltas[i].multiplyElement(Matrix.copy(this.computed[i]).map(sigmoidPrime));
+        changes[i] = Matrix.multiply(Matrix.transpose(this.activated[i - 1]), deltas[i]);    
+        
+      }
+      
+    }
+    
+    return changes;
+    
+  }
 }
