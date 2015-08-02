@@ -291,6 +291,16 @@ export class Matrix {
 
     return result;
   }
+  
+  public sum (): number {
+    let sum = 0;
+    
+    this.forEachCell(x => {
+      sum += x;
+    });
+    
+    return sum;
+  }
 }
 
 export class ConstantMatrix extends Matrix {

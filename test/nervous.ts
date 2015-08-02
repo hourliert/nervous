@@ -8,30 +8,41 @@ import chai = require('chai');
 var expect = chai.expect;
 
 describe('Nervous', function() {
-  it('should be defined.', function() {
-    let nervous = new Nervous(2, [3, 3], 1);
-
+  let nervous: Nervous;
+  
+  beforeEach(() => {
+    nervous = new Nervous({
+      inputLayerSize: 2,
+      hiddenLayers: [3],
+      outputLayerSize: 1,
+      iterations: 100,
+      regulation: 0.0001,
+      learningRate: 1
+    });
+  });
+  
+  afterEach(() => {
+    nervous = null;
+  });
+  
+  it('should be defined', function() {
     expect(nervous).to.be.ok;
-    expect(nervous.weights.length).to.be.equals(3);
+    expect(nervous.weights.length).to.be.equals(2);
     expect(nervous.weights[0].numRows).to.be.equals(2);
     expect(nervous.weights[0].numCols).to.be.equals(3);
     expect(nervous.weights[1].numRows).to.be.equals(3);
-    expect(nervous.weights[1].numCols).to.be.equals(3);
-    expect(nervous.weights[2].numRows).to.be.equals(3);
-    expect(nervous.weights[2].numCols).to.be.equals(1);
+    expect(nervous.weights[1].numCols).to.be.equals(1);
   });
 
   it('should forward', function() {
-    let nervous = new Nervous(2, [3, 3], 1),
-      input = new PlainMatrix([
+    let input = new PlainMatrix([
         [3, 5]
       ]),
       output = nervous.forward(input);
   });
 
   it('should compute the cost.', function() {
-    let nervous = new Nervous(2, [3, 3], 1),
-      input = new PlainMatrix([
+    let input = new PlainMatrix([
         [3.0/10.0, 5.0/10.0]
       ]),
       realOutput = new PlainMatrix([
@@ -41,8 +52,7 @@ describe('Nervous', function() {
   });
   
   it('should compute the prime cost.', function() {
-    let nervous = new Nervous(2, [3, 3], 1),
-      input = new PlainMatrix([
+    let input = new PlainMatrix([
         [3.0/10.0, 5.0/10.0]
       ]),
       realOutput = new PlainMatrix([
@@ -51,24 +61,21 @@ describe('Nervous', function() {
       cost = nervous.costPrime(input, realOutput);
       
       expect(cost).to.be.ok;
+      expect(cost.length).to.be.equals(2);
       expect(cost[0].numRows).to.be.equals(2);
       expect(cost[0].numCols).to.be.equals(3);
       expect(cost[1].numRows).to.be.equals(3);
-      expect(cost[1].numCols).to.be.equals(3);
-      expect(cost[2].numRows).to.be.equals(3);
-      expect(cost[2].numCols).to.be.equals(1);
+      expect(cost[1].numCols).to.be.equals(1);
   });
   
   it('should compute the number of gradients', function() {
-    let nervous = new Nervous(2, [3, 3], 1),
-      numberOfGradients = nervous.numberOfGradients();
+    let numberOfGradients = nervous.numberOfGradients();
       
-      expect(numberOfGradients).to.be.equals(2*3 + 3*3 + 3*1);
+      expect(numberOfGradients).to.be.equals(2*3 + 3*1);
   });
   
   it('should compute the gradients', function() {
-    let nervous = new Nervous(2, [3, 3], 1),
-      input = new PlainMatrix([
+    let input = new PlainMatrix([
         [3.0/10.0, 5.0/10.0]
       ]),
       realOutput = new PlainMatrix([
@@ -76,12 +83,11 @@ describe('Nervous', function() {
       ]),
       gradients = nervous.computeGradients(input, realOutput);
       
-      expect(gradients.length).to.be.equals(2*3 + 3*3 + 3*1);
+      expect(gradients.length).to.be.equals(2*3 + 3*1);
   });
   
   it('should compute the numerical gradients', function() {
-    let nervous = new Nervous(2, [3, 3], 1),
-      input = new PlainMatrix([
+    let input = new PlainMatrix([
         [3.0/10.0, 5.0/10.0]
       ]),
       realOutput = new PlainMatrix([
@@ -89,12 +95,11 @@ describe('Nervous', function() {
       ]),
       numGradients = computeNumericalGradients(nervous, input, realOutput);
       
-      expect(numGradients.length).to.be.equals(2*3 + 3*3 + 3*1);
+      expect(numGradients.length).to.be.equals(2*3 + 3*1);
   });
   
   it('should compare the gradients and the numerical gradients', function() {
-    let nervous = new Nervous(2, [3, 3], 1),
-      input = new PlainMatrix([
+    let input = new PlainMatrix([
         [3.0/10.0, 5.0/10.0]
       ]),
       realOutput = new PlainMatrix([
@@ -104,15 +109,13 @@ describe('Nervous', function() {
       numGradients = computeNumericalGradients(nervous, input, realOutput),
       normResult = norm(sub(gradients, numGradients)) / norm(add(gradients, numGradients));
       
-      expect(gradients.length).to.be.equals(2*3 + 3*3 + 3*1);
-      expect(numGradients.length).to.be.equals(2*3 + 3*3 + 3*1);
-      expect(normResult).to.be.below(1e-8);
-  });
+      expect(gradients.length).to.be.equals(2*3 + 3*1);
+      expect(numGradients.length).to.be.equals(2*3 + 3*1);
+      expect(normResult).to.be.below(1e-6);
+  }); 
   
-  
-  it('should adjust the weihgts.', function() {
-    let nervous = new Nervous(2, [3, 3], 1),
-      input = new PlainMatrix([
+  it('should adjust the weihgts', function() {
+    let input = new PlainMatrix([
         [3.0/10.0, 5.0/10.0]
       ]),
       realOutput = new PlainMatrix([
@@ -125,8 +128,21 @@ describe('Nervous', function() {
       expect(weights[0].numRows).to.be.equals(2);
       expect(weights[0].numCols).to.be.equals(3);
       expect(weights[1].numRows).to.be.equals(3);
-      expect(weights[1].numCols).to.be.equals(3);
-      expect(weights[2].numRows).to.be.equals(3);
-      expect(weights[2].numCols).to.be.equals(1);
+      expect(weights[1].numCols).to.be.equals(1);
+  });
+  
+  it('should train the networks using BFGS optimization method', function() {
+    let input = new PlainMatrix([
+        [3.0 / 10.0, 5.0 / 10.0], 
+        [5.0 / 10.0, 1.0 / 10.0], 
+        [10.0 / 10.0, 2.0 / 10.0]
+      ]),
+      realOutput = new PlainMatrix([
+        [75.0 / 100.0], 
+        [82.0 / 100.0], 
+        [93.0 / 100.0]
+      ]);
+      
+      nervous.train(input, realOutput);
   });
 });

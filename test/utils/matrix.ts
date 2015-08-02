@@ -185,17 +185,38 @@ describe('Matrix', () => {
             columns: 2,
             value: 2
           }),
-          res = Utils.Matrix.multiply(matrix1, matrix2);
+          res = Utils.Matrix.multiply(matrix1, matrix2),
+          matrix3 = new Utils.ConstantMatrix({
+            rows: 3, 
+            columns: 2,
+            value: 10
+          }), 
+          matrix4 = new Utils.ConstantMatrix({
+            rows: 2, 
+            columns: 4,
+            value: 2
+          }),
+          res2 = Utils.Matrix.multiply(matrix3, matrix4);
           
       expect(matrix1).to.be.ok;
       expect(matrix2).to.be.ok;
       expect(res).to.be.ok;
+      expect(matrix3).to.be.ok;
+      expect(matrix4).to.be.ok;
+      expect(res2).to.be.ok;
+      
       
       for (let i = 0; i < 2; i++) {
         for (let j = 0; j < 2; j++) {
           expect(matrix1[i][j]).to.be.equals(10);
           expect(matrix2[i][j]).to.be.equals(2);
           expect(res[i][j]).to.be.equals(40);
+        }
+      }
+      
+      for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 4; j++) {
+          expect(res2[i][j]).to.be.equals(40);
         }
       }
     });

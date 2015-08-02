@@ -2,20 +2,41 @@ import {sigmoid, sigmoidPrime} from './utils/sigmoid';
 import {ConstantMatrix, PlainMatrix, Matrix} from './utils/matrix';
 import {zeros, add, sub} from './utils/array';
 
+
+export interface INervousConfiguration {
+  inputLayerSize: number;
+  hiddenLayers?: number[];
+  outputLayerSize: number;
+  iterations?: number;
+  regulation?: number;
+  learningRate?: number;
+}
+
+
 export class Nervous {
+  
   public weights: Matrix[];
   public computed: Matrix[];
   public activated: Matrix[];
-  public layer: number;
 
   constructor(
-    private inputLayerSize: number,
-    private hiddenLayer: number[],
-    private outputLayerSize: number
-    ) {
+    private config: INervousConfiguration = {
+      inputLayerSize: 2,
+      hiddenLayers: [3],
+      outputLayerSize: 1,
+      iterations: 10000,
+      regulation: 0.0001,
+      learningRate: 1
+    }
+  ) {
     let k,
       weights: number[][][] = [],
-      iterations = this.layer = hiddenLayer.length + 1;
+      iterations = config.hiddenLayers.length + 1;
+    
+    config.hiddenLayers = config.hiddenLayers || [config.inputLayerSize];
+    config.iterations = config.iterations || 10000;
+    config.regulation = config.regulation || 0.0001;
+    config.learningRate = config.learningRate || 1;
 
     this.weights = [];
     this.computed = [];
@@ -27,20 +48,20 @@ export class Nervous {
         currentSize: number, nextSize:  number;
 
       if (k === 0) {
-        currentSize = inputLayerSize;
-        nextSize = hiddenLayer[k];
+        currentSize = config.inputLayerSize;
+        nextSize = config.hiddenLayers[k];
       } else if (k === iterations - 1) {
-        currentSize = hiddenLayer[k - 1];
-        nextSize = outputLayerSize;
+        currentSize = config.hiddenLayers[k - 1];
+        nextSize = config.outputLayerSize;
       } else {
-        currentSize = hiddenLayer[k - 1];
-        nextSize = hiddenLayer[k];
+        currentSize = config.hiddenLayers[k - 1];
+        nextSize = config.hiddenLayers[k];
       }
       for (i = 0; i < currentSize; i++) {
         for (j = 0; j < nextSize; j++) {
           weights[k] = weights[k] || [];
           weights[k][i] = weights[k][i] || [];
-          weights[k][i][j] = Math.random() + 0.4 + 0.2;
+          weights[k][i][j] = Math.random();
         }
       }
 
@@ -108,9 +129,11 @@ export class Nervous {
   }
   
   public cost (input: Matrix, output: Matrix): number {
+    
     let yHat = this.forward(input),
-        i,
+        i, k,
         cost = 0,
+        weightsSum = 0,
         difference: Matrix = Matrix.sub(output, yHat);
          
     difference.map((x) => Math.pow(x, 2));
@@ -119,11 +142,17 @@ export class Nervous {
       cost += difference[i][0];
     }
     
-    cost = 0.5 * cost;
+    for (k = 0; k < this.weights.length; k++) {
+      weightsSum += Matrix.copy(this.weights[k]).map((x) => Math.pow(x, 2)).sum();
+    }
+    
+    
+    cost = 0.5 * cost / input.numRows + (this.config.regulation / 2.0) * (weightsSum);
     return cost;
   }
   
   public costPrime(input: Matrix, output: Matrix): Matrix[] {
+    
     let yHat = this.forward(input),
         difference = Matrix.sub(yHat, output),
         i,
@@ -132,7 +161,6 @@ export class Nervous {
         
     for (i = this.weights.length - 1; i >= 0; i--) {
       
-      let currentMatrix: Matrix, nextMatrix: Matrix;
       if (i === this.weights.length - 1) {
         
         deltas[i] = Matrix.multiplyElement(
@@ -140,6 +168,8 @@ export class Nervous {
           Matrix.copy(this.computed[i]).map(sigmoidPrime)
         );
         changes[i] = Matrix.multiply(Matrix.transpose(this.activated[i - 1]), deltas[i]);    
+        changes[i].add(Matrix.multiplyScalar(this.weights[i], this.config.regulation));
+        changes[i].multiplyScalar(this.config.learningRate);
         
       } else if (i === 0) {
       
@@ -149,6 +179,8 @@ export class Nervous {
         );
         deltas[i].multiplyElement(Matrix.copy(this.computed[i]).map(sigmoidPrime));
         changes[i] = Matrix.multiply(Matrix.transpose(input), deltas[i]); 
+        changes[i].add(Matrix.multiplyScalar(this.weights[i], this.config.regulation));
+        changes[i].multiplyScalar(this.config.learningRate);
         
       } else {
         
@@ -157,7 +189,9 @@ export class Nervous {
           Matrix.transpose(this.weights[i + 1])
         );
         deltas[i].multiplyElement(Matrix.copy(this.computed[i]).map(sigmoidPrime));
-        changes[i] = Matrix.multiply(Matrix.transpose(this.activated[i - 1]), deltas[i]);    
+        changes[i] = Matrix.multiply(Matrix.transpose(this.activated[i - 1]), deltas[i]);   
+        changes[i].add(Matrix.multiplyScalar(this.weights[i], this.config.regulation)); 
+        changes[i].multiplyScalar(this.config.learningRate);
         
       }
       
@@ -196,9 +230,21 @@ export class Nervous {
   public adjustWeights (dJdW: Matrix[]): Matrix[] {
     
     for (let i = 0; i < this.weights.length; i++) {
-      this.weights[i].add(dJdW[i]);
+      this.weights[i].sub(dJdW[i]);
     }
     return this.weights;
+    
+  }
+  
+  public train (input: Matrix, output: Matrix) {
+    
+    for (let i = 0 ; i < this.config.iterations ; i++) {
+      
+      let predict = this.forward(input);
+      let dJdW = this.costPrime(input, output);
+      this.adjustWeights(dJdW);
+    
+    }
     
   }
   
@@ -224,7 +270,7 @@ export function computeNumericalGradients (n: Nervous, input: Matrix, output: Ma
     n.importWeights(sub(initialWeights, perturb));
     loss1 = n.cost(input, output)
 
-    gradients[k] = (loss2 - loss1) / (2*epsilon);
+    gradients[k] = (loss2 - loss1) / (2 * epsilon);
 
     perturb[k] = 0;
     

@@ -1,5 +1,3 @@
-
-
 export function zeros (size: number): Array<number> {
   let ret = [];
   
