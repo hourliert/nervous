@@ -169,7 +169,6 @@ export class Nervous {
         );
         changes[i] = Matrix.multiply(Matrix.transpose(this.activated[i - 1]), deltas[i]);    
         changes[i].add(Matrix.multiplyScalar(this.weights[i], this.config.regulation));
-        changes[i].multiplyScalar(this.config.learningRate);
         
       } else if (i === 0) {
       
@@ -180,7 +179,6 @@ export class Nervous {
         deltas[i].multiplyElement(Matrix.copy(this.computed[i]).map(sigmoidPrime));
         changes[i] = Matrix.multiply(Matrix.transpose(input), deltas[i]); 
         changes[i].add(Matrix.multiplyScalar(this.weights[i], this.config.regulation));
-        changes[i].multiplyScalar(this.config.learningRate);
         
       } else {
         
@@ -191,7 +189,6 @@ export class Nervous {
         deltas[i].multiplyElement(Matrix.copy(this.computed[i]).map(sigmoidPrime));
         changes[i] = Matrix.multiply(Matrix.transpose(this.activated[i - 1]), deltas[i]);   
         changes[i].add(Matrix.multiplyScalar(this.weights[i], this.config.regulation)); 
-        changes[i].multiplyScalar(this.config.learningRate);
         
       }
       
@@ -230,7 +227,7 @@ export class Nervous {
   public adjustWeights (dJdW: Matrix[]): Matrix[] {
     
     for (let i = 0; i < this.weights.length; i++) {
-      this.weights[i].sub(dJdW[i]);
+      this.weights[i].sub(Matrix.multiplyScalar(dJdW[i], this.config.learningRate));
     }
     return this.weights;
     

@@ -17,7 +17,7 @@ describe('Nervous', function() {
       outputLayerSize: 1,
       iterations: 100,
       regulation: 0.0001,
-      learningRate: 1
+      learningRate: 0.5
     });
   });
   
@@ -111,7 +111,7 @@ describe('Nervous', function() {
       
       expect(gradients.length).to.be.equals(2*3 + 3*1);
       expect(numGradients.length).to.be.equals(2*3 + 3*1);
-      expect(normResult).to.be.below(1e-6);
+      expect(normResult).to.be.below(1e-8);
   }); 
   
   it('should adjust the weihgts', function() {
@@ -131,7 +131,7 @@ describe('Nervous', function() {
       expect(weights[1].numCols).to.be.equals(1);
   });
   
-  it('should train the networks using BFGS optimization method', function() {
+  it('should train the network for random value', function() {
     let input = new PlainMatrix([
         [3.0 / 10.0, 5.0 / 10.0], 
         [5.0 / 10.0, 1.0 / 10.0], 
@@ -141,6 +141,23 @@ describe('Nervous', function() {
         [75.0 / 100.0], 
         [82.0 / 100.0], 
         [93.0 / 100.0]
+      ]);
+      
+      nervous.train(input, realOutput);
+  });
+  
+  it('should train the network for xor', function() {
+    let input = new PlainMatrix([
+        [0, 0], 
+        [0, 1], 
+        [1, 0],
+        [1, 1]
+      ]),
+      realOutput = new PlainMatrix([
+        [0],
+        [1], 
+        [1],
+        [0]
       ]);
       
       nervous.train(input, realOutput);

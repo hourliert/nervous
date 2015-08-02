@@ -16,6 +16,7 @@ var gulp        = require('gulp'),
     
 var PATHS = {
   src: 'lib',
+  examples: 'examples',
   build: 'build',
   test: 'test',
   typings: 'typings'
@@ -42,7 +43,8 @@ gulp.task('clean:tsd', function (cb) {
 gulp.task('scripts:dev', function() {
   var tsResult = gulp.src([
       PATHS.src + '/**/*.ts',
-      PATHS.test + '/**/*.ts'
+      PATHS.test + '/**/*.ts',
+      PATHS.examples + '/**/*.ts'
     ], { base: "./" })
       .pipe(sourcemaps.init())
       .pipe(ts(tsProject));
@@ -54,20 +56,20 @@ gulp.task('scripts:dev', function() {
   ]);
 });
 
-gulp.task('run', ['scripts:dev'], function() {
+gulp.task('run:ocr', ['scripts:dev'], function() {
     nodemon({
-      script: 'index.js'
+      script: 'examples/ocr/index.js'
     })
     .on('exit', function () {
       process.exit(0);
     });;
 });
 
-gulp.task('run:watch', ['scripts:dev'], function() {
-    gulp.watch(PATHS.src + '/**/*.ts', ['scripts:dev']);
+gulp.task('run:ocr:watch', ['scripts:dev'], function() {
+    gulp.watch(PATHS.examples + '/**/*.ts', ['scripts:dev']);
     
     nodemon({
-      script: 'index.js'
+      script: 'examples/ocr/index.js'
     });
 });
 

@@ -7,3 +7,4 @@ build
 typings
 lib/**/*.js
 test/**/*.js
+examples/**/*.js
