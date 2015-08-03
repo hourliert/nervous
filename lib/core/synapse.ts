@@ -2,12 +2,13 @@ import {Neuron} from './neuron';
 
 export class Synapse {
   public id: string;
-  private weight: number;
+  public weight: number;
   
   constructor (
-    private input: Neuron,
-    private output: Neuron
+    public input: Neuron,
+    public output: Neuron
   ) {
     this.id = `s_${input.id}_${output.id}`;
+    this.weight = Math.random();
   }
 }
