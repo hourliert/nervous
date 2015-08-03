@@ -7,7 +7,7 @@ import chai = require('chai');
 
 var expect = chai.expect;
 
-describe('Nervous', function() {
+describe.skip('Nervous', function() {
   let nervous: Nervous;
   
   beforeEach(() => {
