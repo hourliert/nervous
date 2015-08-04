@@ -10,8 +10,9 @@ export class Neuron {
   private inputSynapse: Synapse[];
   private outputSynapse: Synapse[];
   
-  protected value: number;
-  protected valuePreActivation: number;
+  public activatedValue: number;
+  public preActivatedValue: number;
+  public error: number;
   
   constructor (
     private layer: Layer,
@@ -20,7 +21,7 @@ export class Neuron {
   ) {
     
     this.id = `n_${this.layer.id}_${this.layer.id}`;
-    this.value = 0;
+    this.activatedValue = 0;
     this.inputSynapse = [];
     this.outputSynapse = [];
     this.activation = activationFunctions.activation;
@@ -37,7 +38,7 @@ export class Neuron {
   }
   
   public setValue (value: number) {
-    this.value = value;
+    this.activatedValue = value;
   }
   
   public computeValue () {
@@ -45,11 +46,32 @@ export class Neuron {
     let sum = 0;
     for (let i = 0 ; i < this.inputSynapse.length ; i++) {
       let s = this.inputSynapse[i];
-      sum += s.weight * s.input.value;
+      sum += s.weight * s.input.activatedValue;
     }
-    this.valuePreActivation = sum;
-    this.value = this.activation(sum);
+    this.preActivatedValue = sum;
+    this.activatedValue = this.activation(sum);
     
+  }
+  
+  public computeError () {
+    
+    let delta = 0;
+    for (let i = 0 ; i < this.outputSynapse.length ; i++) {
+      
+      let s = this.outputSynapse[i];   
+      delta += s.output.error * s.weight;
+      
+    }
+    this.error = (delta || -this.activatedValue) * this.activationPrime(this.preActivatedValue);
+    
+  }
+  
+  public backPropagate () {
+    
+    for (let i = 0 ; i < this.outputSynapse.length ; i++) {
+      let s = this.outputSynapse[i]; 
+      s.change += this.activatedValue * s.output.error;
+    }
   }
 }
 
@@ -61,11 +83,11 @@ export class BiasNeuron extends Neuron {
     activationFunctions: IActivationFunctions
   ) {
     super(layer, position, activationFunctions);
-    this.value = 1;
+    this.activatedValue = 1;
   }
   
   public setValue () {
-    this.value = 1;
+    this.activatedValue = 1;
   }
 }
 

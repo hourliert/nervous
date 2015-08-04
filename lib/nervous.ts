@@ -147,8 +147,8 @@ export class Nervous {
     }
     
     
-    cost = 0.5 * cost / input.numRows + (this.config.regulation / 2.0) * (weightsSum);
-    return cost;
+    // cost = 0.5 * cost / input.numRows + (this.config.regulation / 2.0) * (weightsSum);
+    return 0.5 * cost;
   }
   
   public costPrime(input: Matrix, output: Matrix): Matrix[] {
@@ -168,7 +168,7 @@ export class Nervous {
           Matrix.copy(this.computed[i]).map(sigmoidPrime)
         );
         changes[i] = Matrix.multiply(Matrix.transpose(this.activated[i - 1]), deltas[i]);    
-        changes[i].add(Matrix.multiplyScalar(this.weights[i], this.config.regulation));
+        // changes[i].add(Matrix.multiplyScalar(this.weights[i], this.config.regulation));
         
       } else if (i === 0) {
       
@@ -178,7 +178,7 @@ export class Nervous {
         );
         deltas[i].multiplyElement(Matrix.copy(this.computed[i]).map(sigmoidPrime));
         changes[i] = Matrix.multiply(Matrix.transpose(input), deltas[i]); 
-        changes[i].add(Matrix.multiplyScalar(this.weights[i], this.config.regulation));
+        // changes[i].add(Matrix.multiplyScalar(this.weights[i], this.config.regulation));
         
       } else {
         
@@ -188,7 +188,7 @@ export class Nervous {
         );
         deltas[i].multiplyElement(Matrix.copy(this.computed[i]).map(sigmoidPrime));
         changes[i] = Matrix.multiply(Matrix.transpose(this.activated[i - 1]), deltas[i]);   
-        changes[i].add(Matrix.multiplyScalar(this.weights[i], this.config.regulation)); 
+        // changes[i].add(Matrix.multiplyScalar(this.weights[i], this.config.regulation)); 
         
       }
       
