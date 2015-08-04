@@ -93,13 +93,13 @@ export class InputLayer extends Layer {
     activationFunctions: IActivationFunctions
   ) {
     super(size, activationFunctions);    
-    // this.neurons.push(new BiasNeuron(this, size, activationFunctions));
+    this.neurons.push(new BiasNeuron(this, size, activationFunctions));
   }
   
   public setNeuronValue (input: number[]) {
     
-    if (input.length !== (this.neurons.length)) { //without the bias
-      throw new Error(`The size of the input ${input.length} differs fron the number of neurons ${this.neurons.length}`);
+    if (input.length !== (this.neurons.length - 1)) { //without the bias
+      throw new Error(`The size of the input ${input.length} differs fron the number of neurons ${this.neurons.length - 1}`);
     }
     for (let i = 0 ; i < input.length ; i++) {
       this.neurons[i].setValue(input[i]);
@@ -119,7 +119,7 @@ export class HiddenLayer extends Layer {
     activationFunctions: IActivationFunctions
   ) {
     super(size, activationFunctions);    
-    // this.neurons.push(new BiasNeuron(this, size, activationFunctions));
+    this.neurons.push(new BiasNeuron(this, size, activationFunctions));
   }
 }
 
