@@ -1,14 +1,10 @@
 import {Neuron, BiasNeuron} from './neuron';
-import {Synapse} from './synapse';
+import {Synapse, ISynapsesLayer} from './synapse';
+import {IActivationFunctions} from './neural-network';
 
-export interface ISynapsesLayer extends Array<Synapse> {}
-
-export interface IActivationFunctions {
-  activation: (z: number) => number;
-  activationPrime: (z: number) => number;
-}
 
 export class Layer {
+  
   static currentId: number = 0;
   
   public id: string;
@@ -18,6 +14,7 @@ export class Layer {
     size: number,
     activationFunctions: IActivationFunctions
   ) {
+    
     this.id = `l_${Layer.currentId++}`;
     this.neurons = [];
     
@@ -27,20 +24,37 @@ export class Layer {
       
   }
   
-  public linkTo(layer: Layer): ISynapsesLayer {
+  get neuronsValue (): number[] {
+    
+    let ret = [];
+    this.forEachNeuron((n) => ret.push(n.A));
+    return ret;
+    
+  }
+  set neuronsValue (values: number[]) {
+    
+    let hasBiasNeuron = (this.neurons[this.neurons.length -1] instanceof BiasNeuron) ? 1 : 0;
+    if (values.length !== (this.neurons.length - hasBiasNeuron)) { //without the bias
+      throw new Error(`The size of the input ${values.length} differs fron the number of neurons ${this.neurons.length - hasBiasNeuron}`);
+    }
+    this.forEachNeuron((n, index) => n.A = values[index]);
+    
+  }
+  
+  public linkTo (layer: Layer): ISynapsesLayer {
+    
     let synapses = [];
     
     for (let i = 0; i < this.neurons.length; i++) {
-      let n1 = this.neurons[i];
       
+      let n1 = this.neurons[i]; 
       for (let j = 0; j < layer.neurons.length; j++) {
-        let n2 = layer.neurons[j];
         
-        let s = new Synapse(n1, n2);
+        let n2 = layer.neurons[j],
+            s = new Synapse(n1, n2);
         
-        n1.setOutputSynapse(s);
-        n2.setInputSynapse(s);
-        
+        n1.addOutputSynapse(s);
+        n2.addInputSynapse(s);
         synapses.push(s);
         
       }
@@ -49,93 +63,78 @@ export class Layer {
     
   }
   
-  public propagate () {
+  public forEachNeuron (func: (x: Neuron, index?: number) => void) {
     
     for (let i = 0 ; i < this.neurons.length ; i++) {
-      this.neurons[i].computeValue();
+      func(this.neurons[i], i);
     }
     
   }
   
-  public computeError () {
+  public activate () {
     
-    for (let i = 0 ; i < this.neurons.length ; i++) {
-      this.neurons[i].computeError();
-    }
+    this.forEachNeuron((n) => n.activate());
     
   }
   
-  public backPropagate () {
+  public computeErrors () {
     
-    for (let i = 0 ; i < this.neurons.length ; i++) {
-      this.neurons[i].backPropagate();
-    }
+    this.forEachNeuron((n) => n.computeError());
     
   }
- 
   
-  public setNeuronValue (input: number[]) {
+  public computeDeltas () {
     
-    if (input.length !== this.neurons.length) {
-      throw new Error(`The size of the input ${input.length} differs fron the number of neurons ${this.neurons.length}`);
-    }
-    for (let i = 0 ; i < input.length ; i++) {
-      this.neurons[i].setValue(input[i]);
-    }
+    this.forEachNeuron((n) => n.backPropagate());
+    
   }
   
-
 }
 
 export class InputLayer extends Layer {
+  
   constructor (
     size: number,
     activationFunctions: IActivationFunctions
   ) {
+    
     super(size, activationFunctions);    
     this.neurons.push(new BiasNeuron(this, size, activationFunctions));
-  }
-  
-  public setNeuronValue (input: number[]) {
-    
-    if (input.length !== (this.neurons.length - 1)) { //without the bias
-      throw new Error(`The size of the input ${input.length} differs fron the number of neurons ${this.neurons.length - 1}`);
-    }
-    for (let i = 0 ; i < input.length ; i++) {
-      this.neurons[i].setValue(input[i]);
-    }
     
   }
   
-  public propagate () {
+  public activate () {
+    
     throw new Error(`The input layer could not propagate using a previous layer`);
+    
   }
+  
 }
 
 
 export class HiddenLayer extends Layer {
+  
   constructor (
     size: number,
     activationFunctions: IActivationFunctions
   ) {
+    
     super(size, activationFunctions);    
     this.neurons.push(new BiasNeuron(this, size, activationFunctions));
+    
   }
+  
 }
 
 export class OutputLayer extends Layer {
+  
   constructor (
     size: number,
     activationFunctions: IActivationFunctions
   ) {
-    super(size, activationFunctions);    
+    
+    super(size, activationFunctions);
+        
   }
   
-  get value(): number[] {
-    let ret = [];
-    for (let i = 0 ; i < this.neurons.length ; i++) {
-      ret.push(this.neurons[i].activatedValue);
-    }
-    return ret;
-  }
 }

@@ -1,4 +1,5 @@
-import {Layer, IActivationFunctions} from './layer';
+import {IActivationFunctions} from './neural-network';
+import {Layer} from './layer';
 import {Synapse} from './synapse';
 
 export class Neuron {
@@ -7,12 +8,12 @@ export class Neuron {
   private activation: (z: number) => number;
   private activationPrime: (z: number) => number;
   
-  private inputSynapse: Synapse[];
-  private outputSynapse: Synapse[];
+  private inputSynapses: Synapse[];
+  private outputSynapses: Synapse[];
   
-  public activatedValue: number;
-  public preActivatedValue: number;
-  public error: number;
+  protected activatedValue: number;
+  private preActivatedValue: number;
+  private error: number;
   
   constructor (
     private layer: Layer,
@@ -20,57 +21,76 @@ export class Neuron {
     activationFunctions: IActivationFunctions
   ) {
     
-    this.id = `n_${this.layer.id}_${this.layer.id}`;
-    this.activatedValue = 0;
-    this.inputSynapse = [];
-    this.outputSynapse = [];
+    this.id = `n_${this.layer.id}_${position}`;
+    this.A = 0;
+    this.Z = 0;
+    
+    this.inputSynapses = [];
+    this.outputSynapses = [];
+    
     this.activation = activationFunctions.activation;
     this.activationPrime = activationFunctions.activationPrime;
-    
+
   }
   
-  public setInputSynapse (s: Synapse) {
-    this.inputSynapse.push(s);
+  get A(): number {
+    return this.activatedValue;
+  }
+  set A(activatedValue: number) {
+    this.activatedValue = activatedValue;
   }
   
-  public setOutputSynapse (s: Synapse) {
-    this.outputSynapse.push(s);
+  get Z(): number {
+    return this.preActivatedValue;
+  }
+  set Z(preActivatedValue: number) {
+    this.preActivatedValue = preActivatedValue;
   }
   
-  public setValue (value: number) {
-    this.activatedValue = value;
+  get delta(): number {
+    return this.error;
+  }
+  set delta (error: number) {
+    this.error = error;
   }
   
-  public computeValue () {
+  public addInputSynapse (s: Synapse) {
+    this.inputSynapses.push(s);
+  }
+  public addOutputSynapse (s: Synapse) {
+    this.outputSynapses.push(s);
+  }
+  
+  public activate () {
     
     let sum = 0;
-    for (let i = 0 ; i < this.inputSynapse.length ; i++) {
-      let s = this.inputSynapse[i];
-      sum += s.weight * s.input.activatedValue;
+    for (let i = 0 ; i < this.inputSynapses.length ; i++) {
+      let s = this.inputSynapses[i];
+      sum += s.weight * s.neurons.input.A;
     }
-    this.preActivatedValue = sum;
-    this.activatedValue = this.activation(sum);
+    this.Z = sum;
+    this.A = this.activation(sum);
     
   }
   
   public computeError () {
     
     let delta = 0;
-    for (let i = 0 ; i < this.outputSynapse.length ; i++) {
+    for (let i = 0 ; i < this.outputSynapses.length ; i++) {
       
-      let s = this.outputSynapse[i];   
-      delta += s.output.error * s.weight;
+      let s = this.outputSynapses[i];   
+      delta = delta + s.neurons.output.delta * s.weight;
       
     }
-    this.error = (delta || -this.activatedValue) * this.activationPrime(this.preActivatedValue);
+    this.error = (delta || -this.A) * this.activationPrime(this.Z);
     
   }
   
   public backPropagate () {
     
-    for (let i = 0 ; i < this.outputSynapse.length ; i++) {
-      let s = this.outputSynapse[i]; 
-      s.change += this.activatedValue * s.output.error;
+    for (let i = 0 ; i < this.outputSynapses.length ; i++) {
+      let s = this.outputSynapses[i]; 
+      s.gradient = s.gradient + this.A * s.neurons.output.delta;
     }
   }
 }
@@ -83,10 +103,13 @@ export class BiasNeuron extends Neuron {
     activationFunctions: IActivationFunctions
   ) {
     super(layer, position, activationFunctions);
-    this.activatedValue = 1;
+    this.A = 1;
   }
   
-  public setValue () {
+  get A (): number {
+    return 1;
+  }
+  set A (value: number) {
     this.activatedValue = 1;
   }
 }
