@@ -2,7 +2,7 @@
 
 Articial Neural Network.
 
-This repo is dedicated to learn ANN in 3 steps.
+This repo is dedicated to learn ANN in 4 steps.
 
 - [x] Understand the math
 - [x] Develop a prototype inspired by harthur/brain, stevenmiller888/mind and stephencwelch/Neural-Networks-Demystified
