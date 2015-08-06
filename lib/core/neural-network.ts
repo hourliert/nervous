@@ -1,7 +1,7 @@
 import {Layer, InputLayer, HiddenLayer, OutputLayer} from './layer';
 import {Synapse, ISynapsesLayer} from './synapse';
 import {sigmoid, sigmoidPrime} from '../utils/sigmoid';
-import {add, sub, multiplyByScalar, sum, zeros, norm} from '../utils/array';
+import {add, sub, multiplyByScalar, addScalar, sum, zeros, norm} from '../utils/array';
 
 export interface IActivationFunctions {
   activation: (z: number) => number;
@@ -39,8 +39,8 @@ export class NeuralNetwork {
     
     this.config.hiddenLayers = this.config.hiddenLayers || [this.config.inputLayerSize];
     this.config.iterations = this.config.iterations || 10000;
-    this.config.learningRate = this.config.learningRate || 0.5;
-    this.config.regulation = this.config.regulation || 0.0001;
+    this.config.learningRate = (this.config.learningRate === undefined) ? 0.5 : this.config.learningRate;
+    this.config.regulation = (this.config.regulation === undefined) ? 0.0001 : this.config.regulation;
     
     let activationFunctions = {
       activation: sigmoid,
@@ -140,7 +140,8 @@ export class NeuralNetwork {
     }
 
     let j = zeros(outputs[0].length), //the number of output neurons
-        yHats = this.forward(inputs);
+        yHats = this.forward(inputs),
+        weightsSum = 0;
 
     for (let k = 0; k < inputs.length; k++) {
       
@@ -148,6 +149,11 @@ export class NeuralNetwork {
       j = add(j, difference);
       
     }
+    // this.forEachSynapse((s) => {
+    //   weightsSum += Math.pow(s.weight, 2);
+    // });
+    
+    // j = addScalar(multiplyByScalar(j, 0.5 / inputs.length), this.config.regulation / 2.0 * weightsSum);
     j = multiplyByScalar(j, 0.5);
     return j;
     
@@ -184,7 +190,7 @@ export class NeuralNetwork {
 
   }
 
-  public adjustWeigths (synapses: ISynapsesLayer[]) {
+  public adjustWeigths (synapses: ISynapsesLayer[], numberOfInputs: number) {
 
     if (synapses.length !== this.synapsesLayers.length) {
       throw new Error(`The number of synapses layers differs.`);
@@ -196,6 +202,7 @@ export class NeuralNetwork {
     }
     
     this.forEachSynapse((s) => {
+      // s.gradient = s.gradient / numberOfInputs + this.config.regulation * s.weight;
       s.weight = s.weight - s.gradient * this.config.learningRate;
       s.gradient = 0;
     });
@@ -209,7 +216,7 @@ export class NeuralNetwork {
     for (let i = 0 ; i < iterations ; i++) {
       
       let synapses = this.backward(inputs, outputs);
-      this.adjustWeigths(synapses);
+      this.adjustWeigths(synapses, inputs.length);
       
       if (this.config.log && (i % (iterations/100) === 0)) {
         let cost = this.cost(inputs, outputs);
@@ -258,7 +265,7 @@ let n = new NeuralNetwork({
   outputLayerSize: 2,
   iterations: 100000,
   learningRate: 1,
-  regulation: 0.0001,
+  regulation: 0.000,
   log: true
 });
 

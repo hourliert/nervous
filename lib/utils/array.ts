@@ -56,6 +56,16 @@ export function add (a1: Array<number>, a2: Array<number>): Array<number> {
   return ret;
 }
 
+export function addScalar (a1: Array<number>, s: number): Array<number> {
+  let ret = [];
+  
+  for (let i = 0; i < a1.length; i++) {
+    ret[i] = a1[i] + s;
+  }
+  
+  return ret;
+}
+
 export function sub (a1: Array<number>, a2: Array<number>): Array<number> {
   let ret = [];
   
