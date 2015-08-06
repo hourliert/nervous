@@ -1,7 +1,7 @@
 import {Layer, InputLayer, HiddenLayer, OutputLayer} from './layer';
 import {Synapse, ISynapsesLayer} from './synapse';
 import {sigmoid, sigmoidPrime} from '../utils/sigmoid';
-import {add, sub, zeros, norm} from '../utils/array';
+import {add, sub, multiplyByScalar, sum, zeros, norm} from '../utils/array';
 
 export interface IActivationFunctions {
   activation: (z: number) => number;
@@ -22,7 +22,7 @@ export interface IInputPattern extends Array<number> {}
 export interface IOutputPattern extends Array<number> {}
 
 export interface ITrainOutput {
-  error: number
+  error: number[]
 }
 
 export class NeuralNetwork {
@@ -133,22 +133,22 @@ export class NeuralNetwork {
     
   }
 
-  public cost (inputs: IInputPattern[], outputs: IOutputPattern[]): number {
+  public cost (inputs: IInputPattern[], outputs: IOutputPattern[]): number[] {
 
     if (inputs.length !== outputs.length) {
       throw new Error(`Input and output must have the same number of value`);
     }
 
-    let j = 0,
+    let j = zeros(outputs[0].length), //the number of output neurons
         yHats = this.forward(inputs);
 
     for (let k = 0; k < inputs.length; k++) {
       
       let difference = sub(outputs[k], yHats[k]).map((x) => Math.pow(x, 2));
-      j += difference[0];
+      j = add(j, difference);
       
     }
-    j = 0.5 * j;
+    j = multiplyByScalar(j, 0.5);
     return j;
     
   }
@@ -233,7 +233,7 @@ export function computeNumericalGradients (n: NeuralNetwork, input: IInputPatter
       gradients: number[] = zeros(numGrads),
       perturb: Array<number> = zeros(numGrads),
       k;
-      
+    
   for (k = 0; k < numGrads; k++) {
 
     let loss1, loss2;
@@ -243,7 +243,7 @@ export function computeNumericalGradients (n: NeuralNetwork, input: IInputPatter
     loss2 = n.cost(input, output);
     n.weights = sub(initialWeights, perturb);
     loss1 = n.cost(input, output)
-    gradients[k] = (loss2 - loss1) / (2 * epsilon);
+    gradients[k] = sum(multiplyByScalar(sub(loss2, loss1), 1 / (epsilon * 2)));
     perturb[k] = 0;
 
   }
@@ -252,12 +252,13 @@ export function computeNumericalGradients (n: NeuralNetwork, input: IInputPatter
 
 }
 
-var n = new NeuralNetwork({
+let n = new NeuralNetwork({
   inputLayerSize: 2,
   hiddenLayers: [3],
-  outputLayerSize: 1,
+  outputLayerSize: 2,
   iterations: 100000,
   learningRate: 1,
+  regulation: 0.0001,
   log: true
 });
 
@@ -269,11 +270,17 @@ let input = [
   [5.0 / 10.0, 1.0 / 10.0],
   [10.0 / 10.0, 2.0 / 10.0],
   [6.0 / 10.0, 3.0 / 10.0]
+// ], output = [
+//   [75.0 / 100.0],
+//   [82.0 / 100.0],
+//   [93.0 / 100.0],
+//   [81.0 / 100.0]
+// ];
 ], output = [
-  [75.0 / 100.0],
-  [82.0 / 100.0],
-  [93.0 / 100.0],
-  [81.0 / 100.0]
+  [75.0 / 100.0, 81.0 / 100.0],
+  [82.0 / 100.0, 93.0 / 100.0],
+  [93.0 / 100.0, 82.0 / 100.0],
+  [81.0 / 100.0, 75.0 / 100.0]
 ];
 
 let gradients = n.getGradients(input, output),
@@ -285,7 +292,7 @@ numGradients.forEach((x, i) => {
     numGradients[i] = gradients[i];
   }
 });
-    
+
 let normResult = norm(sub(gradients, numGradients)) / norm(add(gradients, numGradients));
 
 console.log('----- Gradient comparaison -----');
