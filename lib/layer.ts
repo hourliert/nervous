@@ -99,7 +99,7 @@ export class InputLayer extends Layer {
   ) {
     
     super(size, activationFunctions);    
-    this.neurons.push(new BiasNeuron(this, size, activationFunctions));
+    // this.neurons.push(new BiasNeuron(this, size, activationFunctions));
     
   }
   
@@ -120,7 +120,7 @@ export class HiddenLayer extends Layer {
   ) {
     
     super(size, activationFunctions);    
-    this.neurons.push(new BiasNeuron(this, size, activationFunctions));
+    // this.neurons.push(new BiasNeuron(this, size, activationFunctions));
     
   }
   

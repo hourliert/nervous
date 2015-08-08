@@ -1,7 +1,7 @@
 import {Layer, InputLayer, HiddenLayer, OutputLayer} from './layer';
 import {Synapse, ISynapsesLayer} from './synapse';
-import {sigmoid, sigmoidPrime} from '../utils/sigmoid';
-import {add, sub, multiplyByScalar, addScalar, sum, zeros, norm} from '../utils/array';
+import {sigmoid, sigmoidPrime} from './utils/sigmoid';
+import {add, sub, multiplyByScalar, addScalar, sum, zeros, norm} from './utils/array';
 
 export interface IActivationFunctions {
   activation: (z: number) => number;
@@ -149,12 +149,18 @@ export class NeuralNetwork {
       j = add(j, difference);
       
     }
-    // this.forEachSynapse((s) => {
-    //   weightsSum += Math.pow(s.weight, 2);
-    // });
     
-    // j = addScalar(multiplyByScalar(j, 0.5 / inputs.length), this.config.regulation / 2.0 * weightsSum);
     j = multiplyByScalar(j, 0.5);
+    
+    if (this.config.regulation) {
+      
+      this.forEachSynapse((s) => {
+        weightsSum += Math.pow(s.weight, 2);
+      });
+      j = addScalar(multiplyByScalar(j, 1 / inputs.length), this.config.regulation / 2.0 * weightsSum);
+      
+    }
+    
     return j;
     
   }
@@ -186,11 +192,18 @@ export class NeuralNetwork {
       }
 
     }
+    
+    if (this.config.regulation) {
+      this.forEachSynapse((s) => {
+        s.gradient = s.gradient + this.config.regulation * s.weight;
+      });
+    }
+    
     return this.synapsesLayers;
 
   }
 
-  public adjustWeigths (synapses: ISynapsesLayer[], numberOfInputs: number) {
+  public adjustWeigths (synapses: ISynapsesLayer[]) {
 
     if (synapses.length !== this.synapsesLayers.length) {
       throw new Error(`The number of synapses layers differs.`);
@@ -202,7 +215,6 @@ export class NeuralNetwork {
     }
     
     this.forEachSynapse((s) => {
-      // s.gradient = s.gradient / numberOfInputs + this.config.regulation * s.weight;
       s.weight = s.weight - s.gradient * this.config.learningRate;
       s.gradient = 0;
     });
@@ -216,7 +228,7 @@ export class NeuralNetwork {
     for (let i = 0 ; i < iterations ; i++) {
       
       let synapses = this.backward(inputs, outputs);
-      this.adjustWeigths(synapses, inputs.length);
+      this.adjustWeigths(synapses);
       
       if (this.config.log && (i % (iterations/100) === 0)) {
         let cost = this.cost(inputs, outputs);
@@ -259,63 +271,63 @@ export function computeNumericalGradients (n: NeuralNetwork, input: IInputPatter
 
 }
 
-let n = new NeuralNetwork({
-  inputLayerSize: 2,
-  hiddenLayers: [3],
-  outputLayerSize: 2,
-  iterations: 100000,
-  learningRate: 1,
-  regulation: 0.000,
-  log: true
-});
+// let n = new NeuralNetwork({
+//   inputLayerSize: 2,
+//   hiddenLayers: [3],
+//   outputLayerSize: 2,
+//   iterations: 1000000,
+//   learningRate: 1,
+//   regulation: 0,
+//   log: true
+// });
 
-console.log('----- Neural Network -----');
-console.log(n);
+// console.log('----- Neural Network -----');
+// console.log(n);
 
-let input = [
-  [3.0 / 10.0, 5.0 / 10.0],
-  [5.0 / 10.0, 1.0 / 10.0],
-  [10.0 / 10.0, 2.0 / 10.0],
-  [6.0 / 10.0, 3.0 / 10.0]
+// let input = [
+//   [3.0 / 10.0, 5.0 / 10.0],
+//   [5.0 / 10.0, 1.0 / 10.0],
+//   [10.0 / 10.0, 2.0 / 10.0],
+//   [6.0 / 10.0, 3.0 / 10.0]
+// // ], output = [
+// //   [75.0 / 100.0],
+// //   [82.0 / 100.0],
+// //   [93.0 / 100.0],
+// //   [81.0 / 100.0]
+// // ];
 // ], output = [
-//   [75.0 / 100.0],
-//   [82.0 / 100.0],
-//   [93.0 / 100.0],
-//   [81.0 / 100.0]
+//   [75.0 / 100.0, 81.0 / 100.0],
+//   [82.0 / 100.0, 93.0 / 100.0],
+//   [93.0 / 100.0, 82.0 / 100.0],
+//   [81.0 / 100.0, 75.0 / 100.0]
 // ];
-], output = [
-  [75.0 / 100.0, 81.0 / 100.0],
-  [82.0 / 100.0, 93.0 / 100.0],
-  [93.0 / 100.0, 82.0 / 100.0],
-  [81.0 / 100.0, 75.0 / 100.0]
-];
 
-let gradients = n.getGradients(input, output),
-    numGradients = computeNumericalGradients(n, input, output);
+// let gradients = n.getGradients(input, output),
+//     numGradients = computeNumericalGradients(n, input, output);
 
-//biases neurons regulation
-numGradients.forEach((x, i) => {
-  if (x === 0) {
-    numGradients[i] = gradients[i];
-  }
-});
+// //biases neurons regulation
+// numGradients.forEach((x, i) => {
+//   if (x === 0) {
+//     numGradients[i] = gradients[i];
+//   }
+// });
 
-let normResult = norm(sub(gradients, numGradients)) / norm(add(gradients, numGradients));
+// let normResult = norm(sub(gradients, numGradients)) / norm(add(gradients, numGradients));
 
-console.log('----- Gradient comparaison -----');
-console.info(normResult);
+// console.log('----- Gradient comparaison -----');
+// console.info(normResult);
 
 
-console.info('----- PRE TRAINING -----');
-console.log(n.forward(input));
-console.log(n.cost(input, output));
+// console.info('----- PRE TRAINING -----');
+// console.log(n.forward(input));
+// console.log(n.cost(input, output));
 
-let time = +new Date();
+// let time = +new Date();
 
-n.train(input, output);
+// n.train(input, output);
 
-console.log(+new Date() - time, 'ms');
+// console.log(+new Date() - time, 'ms');
 
-console.info('----- POST TRAINING -----');
-console.log(n.forward(input));
-console.log(n.cost(input, output));
+// console.info('----- POST TRAINING -----');
+// console.log(n.forward(input));
+// console.log(n.cost(input, output));
