@@ -1,4 +1,5 @@
 import {NeuralNetwork, INeuralNetworkConfiguration} from '../../lib/neural-network';
+import {multiplyByScalar} from '../../lib/utils/array';
 
 function convertCharacter (character: string): number[] {
   return character.trim().replace(/\r?\n|\r/g, '').split('').map(x => ((x === '#') ? 1 : 0));
@@ -43,12 +44,12 @@ let modifiedC = convertCharacter(`
 `);
 
 let input1 = [
-      a,
-      b,
-      c  
+      multiplyByScalar(a, 1/a.length),
+      multiplyByScalar(b, 1/b.length),
+      multiplyByScalar(c, 1/c.length)  
     ],
     input2 = [
-      modifiedC
+      multiplyByScalar(modifiedC, 1/modifiedC.length)
     ],
     output = [
       [1.0 / 26.0],
@@ -68,7 +69,6 @@ let nervous = new NeuralNetwork({
 
 console.log('----- PRE TRAINING -----');
 console.log('a, b, c', nervous.forward(input1));
-console.log('modified c', nervous.forward(input2));
 console.log('initial cost to a, b, c', nervous.cost(input1, output));
 
 console.log('----- TRAINING -----');

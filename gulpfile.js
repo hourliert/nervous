@@ -58,7 +58,8 @@ gulp.task('scripts:dev', function() {
 gulp.task('scripts:dev:watch', ['scripts:dev'], function () {
   gulp.watch([
     PATHS.src + '/**/*.ts',
-    PATHS.test + '/**/*.ts'
+    PATHS.test + '/**/*.ts',
+    PATHS.examples + '/**/*.ts'
   ], ['scripts:dev']);
 });
 
