@@ -55,6 +55,13 @@ gulp.task('scripts:dev', function() {
       .pipe(gulp.dest('.'))
   ]);
 });
+gulp.task('scripts:dev:watch', ['scripts:dev'], function () {
+  gulp.watch([
+    PATHS.src + '/**/*.ts',
+    PATHS.test + '/**/*.ts',
+    PATHS.examples + '/**/*.ts'
+  ], ['scripts:dev']);
+});
 
 gulp.task('run:ocr', ['scripts:dev'], function() {
     nodemon({
