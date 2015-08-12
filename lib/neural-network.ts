@@ -13,7 +13,6 @@ export interface INeuralNetworkConfiguration {
   hiddenLayers?: number[];
   outputLayerSize: number;
   iterations?: number;
-  regulation?: number;
   learningRate?: number;
   log?: boolean;
 }
@@ -40,7 +39,6 @@ export class NeuralNetwork {
     this.config.hiddenLayers = this.config.hiddenLayers || [this.config.inputLayerSize];
     this.config.iterations = this.config.iterations || 10000;
     this.config.learningRate = (this.config.learningRate === undefined) ? 0.5 : this.config.learningRate;
-    this.config.regulation = (this.config.regulation === undefined) ? 0.0001 : this.config.regulation;
     
     let activationFunctions = {
       activation: sigmoid,
@@ -152,15 +150,6 @@ export class NeuralNetwork {
     
     j = multiplyByScalar(j, 0.5);
     
-    if (this.config.regulation) {
-      
-      this.forEachSynapse((s) => {
-        weightsSum += Math.pow(s.weight, 2);
-      });
-      j = addScalar(multiplyByScalar(j, 1 / inputs.length), this.config.regulation / 2.0 * weightsSum);
-      
-    }
-    
     return j;
     
   }
@@ -191,12 +180,6 @@ export class NeuralNetwork {
         this.neuronsLayers[i].computeDeltas();
       }
 
-    }
-    
-    if (this.config.regulation) {
-      this.forEachSynapse((s) => {
-        s.gradient = s.gradient + this.config.regulation * s.weight;
-      });
     }
     
     return this.synapsesLayers;

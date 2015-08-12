@@ -1,4 +1,4 @@
-import {Neuron, BiasNeuron} from './neuron';
+import {Neuron, BiasNeuron, InputNeuron, HiddenNeuron, OutputNeuron} from './neuron';
 import {Synapse, ISynapsesLayer} from './synapse';
 import {IActivationFunctions} from './neural-network';
 
@@ -17,10 +17,6 @@ export class Layer {
     
     this.id = `l_${Layer.currentId++}`;
     this.neurons = [];
-    
-    for (let i = 0; i < size; i++) {
-      this.neurons.push(new Neuron(this, i, activationFunctions));    
-    }  
       
   }
   
@@ -99,6 +95,11 @@ export class InputLayer extends Layer {
   ) {
     
     super(size, activationFunctions);    
+    
+    for (let i = 0; i < size; i++) {
+      this.neurons.push(new InputNeuron(this, i, activationFunctions));    
+    } 
+    
     this.neurons.push(new BiasNeuron(this, size, activationFunctions));
     
   }
@@ -119,7 +120,12 @@ export class HiddenLayer extends Layer {
     activationFunctions: IActivationFunctions
   ) {
     
-    super(size, activationFunctions);    
+    super(size, activationFunctions); 
+    
+    for (let i = 0; i < size; i++) {
+      this.neurons.push(new HiddenNeuron(this, i, activationFunctions));    
+    } 
+       
     this.neurons.push(new BiasNeuron(this, size, activationFunctions));
     
   }
@@ -134,6 +140,10 @@ export class OutputLayer extends Layer {
   ) {
     
     super(size, activationFunctions);
+    
+    for (let i = 0; i < size; i++) {
+      this.neurons.push(new OutputNeuron(this, i, activationFunctions));    
+    } 
         
   }
   

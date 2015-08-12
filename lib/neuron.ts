@@ -114,4 +114,36 @@ export class BiasNeuron extends Neuron {
   }
 }
 
+export class HiddenNeuron extends Neuron {
+  
+  constructor (
+    layer: Layer,
+    position: number,
+    activationFunctions: IActivationFunctions
+  ) {
+    super(layer, position, activationFunctions);
+  }
+}
+
+export class InputNeuron extends Neuron {
+  
+  constructor (
+    layer: Layer,
+    position: number,
+    activationFunctions: IActivationFunctions
+  ) {
+    super(layer, position, activationFunctions);
+  }
+}
+
+export class OutputNeuron extends Neuron {
+  
+  constructor (
+    layer: Layer,
+    position: number,
+    activationFunctions: IActivationFunctions
+  ) {
+    super(layer, position, activationFunctions);
+  }
+}
 
