@@ -52,18 +52,17 @@ let input1 = [
       multiplyByScalar(modifiedC, 1/modifiedC.length)
     ],
     output = [
-      [1.0 / 26.0],
-      [2.0 / 26.0],
-      [3.0 / 26.0]
+      [1, 0, 0],
+      [0, 1, 0],
+      [0, 0, 1]
     ];
 
 let nervous = new NeuralNetwork({
   inputLayerSize: a.length,
   hiddenLayers: [a.length],
-  outputLayerSize: 1,
+  outputLayerSize: 3,
   iterations: 100000,
-  regulation: 0,
-  learningRate: 1,
+  learningRate: 0.7,
   log: true
 });
 
