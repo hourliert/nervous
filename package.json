@@ -47,6 +47,7 @@
     "typescript": "^1.5.3"
   },
   "dependencies": {
-    "nervous-array": "git+https://github.com/hourliert/nervous-array.git"
+    "nervous-array": "git+https://github.com/hourliert/nervous-array.git",
+    "nervous-sigmoid": "git+https://github.com/hourliert/nervous-sigmoid.git"
   }
 }
