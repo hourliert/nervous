@@ -1,3 +1,5 @@
+/// <reference path="./all.d.ts" />
+
 import {Neuron} from './neuron';
 
 export interface ISynapsesLayer extends Array<Synapse> {}

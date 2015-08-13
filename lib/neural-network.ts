@@ -1,4 +1,4 @@
-/// <reference path="../typings/tsd.d.ts" />
+/// <reference path="./all.d.ts" />
 
 import {add, sub, multiplyByScalar, addScalar, sum, zeros, shuffle} from 'nervous-array';
 import {sigmoid, sigmoidPrime} from 'nervous-sigmoid';
@@ -7,7 +7,6 @@ import {Layer, InputLayer, HiddenLayer, OutputLayer} from './layer';
 import {Synapse, ISynapsesLayer} from './synapse';
 
 import './polyfills/assign';
-
 
 export interface IActivationFunctions {
   activation: (z: number) => number;
@@ -213,7 +212,7 @@ export class NeuralNetwork {
   
   public train (data: ITrainingData, options?: ITrainingConfiguration): ITrainingOutput {
     
-    (<any>Object).assign(this.config.trainingOptions, options);
+    Object.assign(this.config.trainingOptions, options);
     
     let iterations = this.config.trainingOptions.iterations,
         batchSize = this.config.trainingOptions.batchSize = (this.config.trainingOptions.batchSize > data.length) ? data.length : this.config.trainingOptions.batchSize;

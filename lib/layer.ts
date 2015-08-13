@@ -1,3 +1,5 @@
+/// <reference path="./all.d.ts" />
+
 import {Neuron, BiasNeuron, InputNeuron, HiddenNeuron, OutputNeuron} from './neuron';
 import {Synapse, ISynapsesLayer} from './synapse';
 import {IActivationFunctions} from './neural-network';
