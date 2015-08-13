@@ -45,32 +45,33 @@ let modifiedC = convertCharacter(`
 
 let data1 = [
       {
-        input: multiplyByScalar(a, 1 / a.length),
+        input: a,
         output: [1, 0, 0]
       },
       {
-        input: multiplyByScalar(b, 1 / b.length),
+        input: b,
         output: [0, 1, 0]
       },
       {
-        input: multiplyByScalar(c, 1 / c.length),
+        input: c,
         output: [0, 0, 1]
       }
     ],
     data2 = [
       {
-        input: multiplyByScalar(modifiedC, 1 / modifiedC.length)
+        input: modifiedC
       }
     ];
 
 let nervous = new NeuralNetwork({
   inputLayerSize: a.length,
-  hiddenLayers: [a.length],
+  hiddenLayers: [10],
   outputLayerSize: 3,
-  iterations: 100000,
-  learningRate: 1,
-  batchSize: 3,
-  log: true
+  trainingOptions: {
+    iterations: 100000,
+    learningRate: 0.1,
+    log: true
+  }
 });
 
 console.log('----- PRE TRAINING -----');

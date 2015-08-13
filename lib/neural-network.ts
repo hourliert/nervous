@@ -6,20 +6,25 @@ import {sigmoid, sigmoidPrime} from 'nervous-sigmoid';
 import {Layer, InputLayer, HiddenLayer, OutputLayer} from './layer';
 import {Synapse, ISynapsesLayer} from './synapse';
 
+import './polyfills/assign';
+
 
 export interface IActivationFunctions {
   activation: (z: number) => number;
   activationPrime: (z: number) => number;
 }
 
+export interface ITrainingConfiguration {
+  batchSize?: number;
+  learningRate?: number;
+  iterations?: number;
+  log?: boolean;
+}
 export interface INeuralNetworkConfiguration {
   inputLayerSize: number;
   hiddenLayers?: number[];
   outputLayerSize: number;
-  iterations?: number;
-  learningRate?: number;
-  batchSize?: number;
-  log?: boolean;
+  trainingOptions?: ITrainingConfiguration;
 }
 
 export interface ITuple {
@@ -28,10 +33,7 @@ export interface ITuple {
 }
 export interface ITrainingData extends Array<ITuple> {}
 
-export interface IInputPattern extends Array<number> {}
-export interface IOutputPattern extends Array<number> {}
-
-export interface ITrainOutput {
+export interface ITrainingOutput {
   error: number[]
 }
 
@@ -48,9 +50,11 @@ export class NeuralNetwork {
   ) {
     
     this.config.hiddenLayers = this.config.hiddenLayers || [this.config.inputLayerSize];
-    this.config.iterations = this.config.iterations || 10000;
-    this.config.learningRate = (this.config.learningRate === undefined) ? 0.5 : this.config.learningRate;
-    this.config.batchSize = (this.config.batchSize === undefined) ? 10 : this.config.batchSize;
+    
+    this.config.trainingOptions = this.config.trainingOptions || {};
+    this.config.trainingOptions.iterations = this.config.trainingOptions.iterations || 10000;
+    this.config.trainingOptions.batchSize = this.config.trainingOptions.batchSize || 10;
+    this.config.trainingOptions.learningRate = (this.config.trainingOptions.learningRate === undefined) ? 0.5 : this.config.trainingOptions.learningRate;
     
     let activationFunctions = {
       activation: sigmoid,
@@ -123,7 +127,7 @@ export class NeuralNetwork {
     
   }
 
-  public forward (data: ITrainingData): IOutputPattern[] {
+  public forward (data: ITrainingData): number[][] {
 
     let ret = [];
 
@@ -189,7 +193,7 @@ export class NeuralNetwork {
 
   }
 
-  public adjustWeigths (synapses: ISynapsesLayer[]) {
+  public adjustWeigths (synapses: ISynapsesLayer[], batchSize: number) {
 
     if (synapses.length !== this.synapsesLayers.length) {
       throw new Error(`The number of synapses layers differs.`);
@@ -201,28 +205,32 @@ export class NeuralNetwork {
     }
     
     this.forEachSynapse((s) => {
-      s.weight = s.weight - s.gradient * this.config.learningRate;
+      s.weight = s.weight - s.gradient * this.config.trainingOptions.learningRate / batchSize;
       s.gradient = 0;
     });
     
   }
   
-  public train (data: ITrainingData): ITrainOutput {
+  public train (data: ITrainingData, options?: ITrainingConfiguration): ITrainingOutput {
     
-    let iterations = this.config.iterations;
+    (<any>Object).assign(this.config.trainingOptions, options);
+    
+    let iterations = this.config.trainingOptions.iterations,
+        batchSize = this.config.trainingOptions.batchSize = (this.config.trainingOptions.batchSize > data.length) ? data.length : this.config.trainingOptions.batchSize;
     
     for (let i = 0 ; i < iterations ; i++) {
       
-      shuffle(data);
+      if (batchSize && batchSize !== data.length) {
+        shuffle(data);
+      }
       
-      let batch = data.slice(0, this.config.batchSize);
+      let batch = data.slice(0, batchSize), 
+          synapses = this.backward(batch);
+          
+      this.adjustWeigths(synapses, batchSize);
       
-      let synapses = this.backward(batch);
-      this.adjustWeigths(synapses);
-      
-      if (this.config.log && (i % (iterations/100) === 0)) {
-        let cost = this.cost(data);
-        console.info(`Progress ${i / iterations}, cost: ${cost}`);
+      if (this.config.trainingOptions.log && (i % (iterations/100) === 0)) {
+        console.info(`Progress ${i / iterations}, cost: ${this.cost(data)}`);
       }
     
     }
