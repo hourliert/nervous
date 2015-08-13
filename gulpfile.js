@@ -12,7 +12,8 @@ var gulp        = require('gulp'),
     del         = require('del'),
     runSequence = require('run-sequence'),
     tsd         = require('gulp-tsd'),
-    nodemon     = require('gulp-nodemon');
+    nodemon     = require('gulp-nodemon'),
+    shell       = require('gulp-shell');
     
 var PATHS = {
   src: 'lib',
@@ -27,12 +28,15 @@ var tsProject = ts.createProject('tsconfig.json', { sortOutput: true });
 /**
  * Dev tasks
  */
-gulp.task('tsd', function (callback) {
+gulp.task('tsd:install', function (callback) {
   tsd({
     command: 'reinstall',
     config: './tsd.json'
   }, callback);
 });
+gulp.task('tsd', ['tsd:install'], shell.task([
+  'tsd link'
+]));
 
 gulp.task('clean:tsd', function (cb) {
   del([

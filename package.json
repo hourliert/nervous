@@ -2,11 +2,13 @@
   "name": "nervous",
   "version": "0.0.0",
   "description": "Neural Network.",
-  "main": "build/js/nervous.js",
+  "main": "index.js",
   "directories": {
     "test": "test"
   },
   "scripts": {
+    "preinstall": "npm install --ignore-scripts",
+    "postinstall": "tsd link",
     "test": "gulp ci"
   },
   "repository": {
@@ -43,5 +45,8 @@
     "run-sequence": "^1.1.2",
     "tsd": "^0.6.3",
     "typescript": "^1.5.3"
+  },
+  "dependencies": {
+    "nervous-array": "git+https://github.com/hourliert/nervous-array.git"
   }
 }

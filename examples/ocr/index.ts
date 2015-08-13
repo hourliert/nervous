@@ -1,5 +1,5 @@
 import {NeuralNetwork, INeuralNetworkConfiguration} from '../../lib/neural-network';
-import {multiplyByScalar} from '../../lib/utils/array';
+import {multiplyByScalar} from 'nervous-array';
 
 function convertCharacter (character: string): number[] {
   return character.trim().replace(/\r?\n|\r/g, '').split('').map(x => ((x === '#') ? 1 : 0));

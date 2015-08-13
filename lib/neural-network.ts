@@ -1,7 +1,10 @@
+/// <reference path="../typings/tsd.d.ts" />
+
+import {add, sub, multiplyByScalar, addScalar, sum, zeros} from 'nervous-array';
+
 import {Layer, InputLayer, HiddenLayer, OutputLayer} from './layer';
 import {Synapse, ISynapsesLayer} from './synapse';
 import {sigmoid, sigmoidPrime} from './utils/sigmoid';
-import {add, sub, multiplyByScalar, addScalar, sum, zeros, norm} from './utils/array';
 
 export interface IActivationFunctions {
   activation: (z: number) => number;
