@@ -61,7 +61,7 @@ let data1 = [
       {
         input: multiplyByScalar(modifiedC, 1 / modifiedC.length)
       }
-    ]
+    ];
 
 let nervous = new NeuralNetwork({
   inputLayerSize: a.length,

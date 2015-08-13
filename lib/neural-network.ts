@@ -213,7 +213,11 @@ export class NeuralNetwork {
     
     for (let i = 0 ; i < iterations ; i++) {
       
-      let synapses = this.backward(data);
+      shuffle(data);
+      
+      let batch = data.slice(0, this.config.batchSize);
+      
+      let synapses = this.backward(batch);
       this.adjustWeigths(synapses);
       
       if (this.config.log && (i % (iterations/100) === 0)) {
