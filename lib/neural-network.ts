@@ -1,6 +1,6 @@
 /// <reference path="./all.d.ts" />
 
-import {add, sub, multiplyByScalar, addScalar, sum, zeros, shuffle} from 'nervous-array';
+import {add, sub, multiplyByScalar, addScalar, sum, zeros, shuffle, rootMeanSquare} from 'nervous-array';
 import {sigmoid, sigmoidPrime} from 'nervous-sigmoid';
 
 import {Layer, InputLayer, HiddenLayer, OutputLayer} from './layer';
@@ -159,7 +159,7 @@ export class NeuralNetwork {
       
     }
     
-    j = multiplyByScalar(j, 0.5);
+    j = multiplyByScalar(j, 1 / (2 * data.length));
     
     return j;
     
@@ -267,3 +267,66 @@ export function computeNumericalGradients (n: NeuralNetwork, data: ITrainingData
   return gradients;
 
 }
+
+// let n = new NeuralNetwork({
+//   inputLayerSize: 2,
+//   hiddenLayers: [3],
+//   outputLayerSize: 1,
+//   trainingOptions: {
+//     iterations: 1000000,
+//     learningRate: 1,
+//     log: true
+//   }
+// });
+
+// console.log('----- Neural Network -----');
+// console.log(n);
+
+// let data: ITrainingData = [
+//   {
+//     input: [3.0 / 10.0, 5.0 / 10.0],
+//     output: [75.0 / 100.0]
+//   },
+//   {
+//     input: [5.0 / 10.0, 1.0 / 10.0],
+//     output: [82.0 / 100.0]
+//   },
+//   {
+//     input: [10.0 / 10.0, 2.0 / 10.0],
+//     output: [93.0 / 100.0]
+//   },
+//   {
+//     input: [6.0 / 10.0, 3.0 / 10.0],
+//     output: [81.0 / 100.0]
+//   }
+// ];
+
+// let gradients = n.getGradients(data),
+//     numGradients = computeNumericalGradients(n, data);
+
+// //biases neurons regulation
+// numGradients.forEach((x, i) => {
+//   if (x === 0) {
+//     numGradients[i] = gradients[i];
+//   }
+// });
+
+// let normResult = rootMeanSquare(sub(gradients, numGradients)) / rootMeanSquare(add(gradients, numGradients));
+
+// console.log('----- Gradient comparaison -----');
+// console.info(normResult);
+
+
+// console.info('----- PRE TRAINING -----');
+// console.log(n.forward(data));
+// console.log(n.cost(data));
+
+// let time = +new Date();
+
+// n.train(data);
+
+// console.log(+new Date() - time, 'ms');
+
+// console.info('----- POST TRAINING -----');
+// console.log(n.forward(data));
+// console.log(n.cost(data));

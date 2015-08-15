@@ -84,6 +84,23 @@ gulp.task('run:ocr:watch', ['scripts:dev'], function() {
     });
 });
 
+gulp.task('run:gates', ['scripts:dev'], function() {
+    nodemon({
+      script: 'examples/gates/index.js'
+    })
+    .on('exit', function () {
+      process.exit(0);
+    });;
+});
+
+gulp.task('run:gates:watch', ['scripts:dev'], function() {
+    gulp.watch(PATHS.examples + '/**/*.ts', ['scripts:dev']);
+    
+    nodemon({
+      script: 'examples/gates/index.js'
+    });
+});
+
 gulp.task('clean:dev', function (cb) {
   del([
     PATHS.src + '/**/*.js',
