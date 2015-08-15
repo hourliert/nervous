@@ -67,6 +67,7 @@ let nervous = new NeuralNetwork({
   hiddenLayers: [10],
   outputLayerSize: 3,
   trainingOptions: {
+    regularization: 0.0001,
     iterations: 100000,
     learningRate: 0.5,
     log: true

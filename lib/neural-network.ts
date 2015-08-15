@@ -14,6 +14,7 @@ export interface IActivationFunctions {
 }
 
 export interface ITrainingConfiguration {
+  regularization?: number;
   batchSize?: number;
   learningRate?: number;
   iterations?: number;
@@ -53,6 +54,7 @@ export class NeuralNetwork {
     this.config.trainingOptions = this.config.trainingOptions || {};
     this.config.trainingOptions.iterations = this.config.trainingOptions.iterations || 10000;
     this.config.trainingOptions.batchSize = this.config.trainingOptions.batchSize || 10;
+    this.config.trainingOptions.regularization = (this.config.trainingOptions.regularization === undefined) ? 0.0001 : this.config.trainingOptions.regularization;
     this.config.trainingOptions.learningRate = (this.config.trainingOptions.learningRate === undefined) ? 0.5 : this.config.trainingOptions.learningRate;
     
     let activationFunctions = {
@@ -161,6 +163,12 @@ export class NeuralNetwork {
     
     j = multiplyByScalar(j, 1 / (2 * data.length));
     
+    this.forEachSynapse((s) => {
+      weightsSum += Math.pow(s.weight, 2);
+    });
+    
+    j = addScalar(j, this.config.trainingOptions.regularization / (2 * data.length) * weightsSum);
+    
     return j;
     
   }
@@ -192,7 +200,7 @@ export class NeuralNetwork {
 
   }
 
-  public adjustWeigths (synapses: ISynapsesLayer[], batchSize: number) {
+  public adjustWeigths (synapses: ISynapsesLayer[], batchSize: number, dataSize: number) {
 
     if (synapses.length !== this.synapsesLayers.length) {
       throw new Error(`The number of synapses layers differs.`);
@@ -204,7 +212,7 @@ export class NeuralNetwork {
     }
     
     this.forEachSynapse((s) => {
-      s.weight = s.weight - s.gradient * this.config.trainingOptions.learningRate / batchSize;
+      s.weight = (1 - this.config.trainingOptions.learningRate * this.config.trainingOptions.regularization / dataSize) * s.weight - this.config.trainingOptions.learningRate / batchSize * s.gradient;
       s.gradient = 0;
     });
     
@@ -226,7 +234,7 @@ export class NeuralNetwork {
       let batch = data.slice(0, batchSize), 
           synapses = this.backward(batch);
           
-      this.adjustWeigths(synapses, batchSize);
+      this.adjustWeigths(synapses, batchSize, data.length);
       
       if (this.config.trainingOptions.log && (i % (iterations/100) === 0)) {
         console.info(`Progress ${i / iterations}, cost: ${this.cost(data)}`);
@@ -273,6 +281,7 @@ export function computeNumericalGradients (n: NeuralNetwork, data: ITrainingData
 //   hiddenLayers: [3],
 //   outputLayerSize: 1,
 //   trainingOptions: {
+//     regularization: 0.0001,
 //     iterations: 1000000,
 //     learningRate: 1,
 //     log: true
