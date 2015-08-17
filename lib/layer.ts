@@ -49,7 +49,7 @@ export class Layer {
       for (let j = 0; j < layer.neurons.length; j++) {
         
         let n2 = layer.neurons[j],
-            s = new Synapse(n1, n2);
+            s = new Synapse(n1, n2, Math.random() / Math.sqrt(this.neurons.length));
         
         n1.addOutputSynapse(s);
         n2.addInputSynapse(s);

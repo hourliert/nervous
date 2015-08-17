@@ -15,10 +15,11 @@ export class Synapse {
 
   constructor (
     private input: Neuron,
-    private output: Neuron
+    private output: Neuron,
+    weight: number
   ) {
     this.id = `s_${input.id}_${output.id}`;
-    this.weight = (Math.random() * 0.4) + 0.2;
+    this.weight = weight;
     this.gradient = 0;
   }
   
