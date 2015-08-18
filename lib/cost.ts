@@ -3,7 +3,10 @@
 import {add, sub, multiplyByScalar, multiply, addScalar, sum, rootMeanSquare} from 'nervous-array';
 import {IActivationFunctions} from './neural-network';
 
-export enum ECostStrategy {Quadratic, CrossEntropy};
+export enum ECostStrategy {
+  Quadratic = 0, 
+  CrossEntropy = 1
+};
 
 export class CostStrategy {
   
