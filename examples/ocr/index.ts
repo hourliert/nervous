@@ -69,7 +69,7 @@ let nervous = new NeuralNetwork({
   trainingOptions: {
     regularization: 0.0001,
     iterations: 100000,
-    learningRate: 0.5,
+    learningRate: 0.1,
     log: true
   }
 });

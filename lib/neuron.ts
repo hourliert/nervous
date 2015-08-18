@@ -5,6 +5,8 @@ import {IActivationFunctions} from './neural-network';
 import {Layer} from './layer';
 import {Synapse} from './synapse';
 
+import {CostStrategy, QuadraticCost} from './cost';
+
 export class Neuron {
   public id: string;
   
@@ -18,11 +20,15 @@ export class Neuron {
   private preActivatedValue: number;
   private error: number;
   
+  private costStrategy: CostStrategy;
+  
   constructor (
     private layer: Layer,
     position: number,
     activationFunctions: IActivationFunctions
   ) {
+    
+    this.costStrategy = QuadraticCost;
     
     this.id = `n_${this.layer.id}_${position}`;
     this.A = 0;
@@ -85,7 +91,9 @@ export class Neuron {
       delta = delta + s.neurons.output.delta * s.weight;
       
     }
-    this.error = (delta || -this.A) * this.activationPrime(this.Z);
+    
+    this.error = (<any>this.costStrategy).delta(delta || -this.A, this.Z);
+    // this.error = (delta || -this.A) * this.activationPrime(this.Z);
     
   }
   

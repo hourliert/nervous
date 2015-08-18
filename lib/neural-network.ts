@@ -5,6 +5,7 @@ import {sigmoid, sigmoidPrime} from 'nervous-sigmoid';
 
 import {Layer, InputLayer, HiddenLayer, OutputLayer} from './layer';
 import {Synapse, ISynapsesLayer} from './synapse';
+import {CostStrategy, QuadraticCost, CrossEntropyCost} from './cost';
 
 import './polyfills/assign';
 
@@ -44,10 +45,14 @@ export class NeuralNetwork {
   private numberOfSynapses: number;
   private inputLayer: InputLayer;
   private outputLayer: OutputLayer;
+  private costStrategy: CostStrategy;
 
   constructor (
     private config: INeuralNetworkConfiguration
   ) {
+    
+    this.costStrategy = QuadraticCost;
+    
     
     this.config.hiddenLayers = this.config.hiddenLayers || [this.config.inputLayerSize];
     
@@ -150,18 +155,11 @@ export class NeuralNetwork {
 
   public cost (data: ITrainingData): number[] {
 
-    let j = zeros(data[0].output.length), //the number of output neurons
-        yHats = this.forward(data),
+    let yHats = this.forward(data),
+        j: number[] = (<any>this.costStrategy).fn(data, yHats),
         weightsSum = 0;
-
-    for (let k = 0; k < data.length; k++) {
-      
-      let difference = sub(data[k].output, yHats[k]).map((x) => Math.pow(x, 2));
-      j = add(j, difference);
-      
-    }
     
-    j = multiplyByScalar(j, 1 / (2 * data.length));
+    j = multiplyByScalar(j, 1 / data.length);
     
     this.forEachSynapse((s) => {
       weightsSum += Math.pow(s.weight, 2);
