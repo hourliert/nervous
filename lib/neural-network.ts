@@ -5,7 +5,7 @@ import {sigmoid, sigmoidPrime} from 'nervous-sigmoid';
 
 import {Layer, InputLayer, HiddenLayer, OutputLayer} from './layer';
 import {Synapse, ISynapsesLayer} from './synapse';
-import {CostStrategy, QuadraticCost, CrossEntropyCost} from './cost';
+import {CostStrategy, ECostStrategy, QuadraticCost, CrossEntropyCost} from './cost';
 
 import './polyfills/assign';
 
@@ -26,6 +26,7 @@ export interface INeuralNetworkConfiguration {
   hiddenLayers?: number[];
   outputLayerSize: number;
   trainingOptions?: ITrainingConfiguration;
+  costStrategy?: ECostStrategy;
 }
 
 export interface ITuple {
@@ -35,7 +36,7 @@ export interface ITuple {
 export interface ITrainingData extends Array<ITuple> {}
 
 export interface ITrainingOutput {
-  error: number[]
+  error: number
 }
 
 export class NeuralNetwork {
@@ -45,14 +46,13 @@ export class NeuralNetwork {
   private numberOfSynapses: number;
   private inputLayer: InputLayer;
   private outputLayer: OutputLayer;
+  
+  private activationFunctions: IActivationFunctions;
   private costStrategy: CostStrategy;
 
   constructor (
     private config: INeuralNetworkConfiguration
   ) {
-    
-    this.costStrategy = QuadraticCost;
-    
     
     this.config.hiddenLayers = this.config.hiddenLayers || [this.config.inputLayerSize];
     
@@ -62,21 +62,31 @@ export class NeuralNetwork {
     this.config.trainingOptions.regularization = (this.config.trainingOptions.regularization === undefined) ? 0.0001 : this.config.trainingOptions.regularization;
     this.config.trainingOptions.learningRate = (this.config.trainingOptions.learningRate === undefined) ? 0.5 : this.config.trainingOptions.learningRate;
     
-    let activationFunctions = {
+    this.activationFunctions = {
       activation: sigmoid,
       activationPrime: sigmoidPrime
     };
-
+    
+    switch (this.config.costStrategy) {
+      case ECostStrategy.Quadratic:
+      default:
+        this.costStrategy = new QuadraticCost(this.activationFunctions);
+        break;
+      case ECostStrategy.CrossEntropy:
+        this.costStrategy = new CrossEntropyCost(this.activationFunctions);
+        break;
+    }
+   
     this.neuronsLayers = [];
     this.synapsesLayers = [];
     this.numberOfSynapses = 0;
 
     //layers creation
-    this.neuronsLayers.push(this.inputLayer = new InputLayer(config.inputLayerSize, activationFunctions));
+    this.neuronsLayers.push(this.inputLayer = new InputLayer(config.inputLayerSize));
     for (let i = 0 ; i < config.hiddenLayers.length ; i++) {
-      this.neuronsLayers.push(new HiddenLayer(config.hiddenLayers[i], activationFunctions));
+      this.neuronsLayers.push(new HiddenLayer(config.hiddenLayers[i]));
     }
-    this.neuronsLayers.push(this.outputLayer = new OutputLayer(config.outputLayerSize, activationFunctions));
+    this.neuronsLayers.push(this.outputLayer = new OutputLayer(config.outputLayerSize));
 
     //synapses creation
     for (let j = 0 ; j < this.neuronsLayers.length - 1; j++) {
@@ -143,7 +153,7 @@ export class NeuralNetwork {
       this.inputLayer.neuronsValue = data[k].input;
       //propagate on each hidden layer and output
       for (let i = 1 ; i < this.neuronsLayers.length ; i++) {
-        this.neuronsLayers[i].activate();
+        this.neuronsLayers[i].activate(this.activationFunctions);
       }
       //retrieve output neuron value
       ret.push(this.outputLayer.neuronsValue);
@@ -153,22 +163,26 @@ export class NeuralNetwork {
     
   }
 
-  public cost (data: ITrainingData): number[] {
+  public cost (data: ITrainingData): number {
 
     let yHats = this.forward(data),
-        j: number[] = (<any>this.costStrategy).fn(data, yHats),
+        j: number = 0,
         weightsSum = 0;
     
-    j = multiplyByScalar(j, 1 / data.length);
+    for (let k = 0; k < data.length; k++) {
+      j += this.costStrategy.fn(data[k].output, yHats[k]);
+    }
+    
+    j = j / data.length;
     
     this.forEachSynapse((s) => {
       weightsSum += Math.pow(s.weight, 2);
     });
     
-    j = addScalar(j, this.config.trainingOptions.regularization / (2 * data.length) * weightsSum);
+    j += this.config.trainingOptions.regularization / (2 * data.length) * weightsSum;
     
     return j;
-    
+ 
   }
 
   public backward (data: ITrainingData): ISynapsesLayer[] {
@@ -182,10 +196,10 @@ export class NeuralNetwork {
 
       //set the input and output layer value
       this.inputLayer.neuronsValue = tuple.input;
-      this.outputLayer.neuronsValue = sub(tuple.output, yHat);
+      this.outputLayer.neuronsValue = sub(yHat, tuple.output);
       //compute propagation errors for all layers expect input
       for (let i = this.neuronsLayers.length - 1 ; i >= 1 ; i--) {
-        this.neuronsLayers[i].computeErrors();
+        this.neuronsLayers[i].computeErrors(this.costStrategy);
       }
       //compute dJdW for all synapses layer
       for (let i = 0 ; i < this.neuronsLayers.length  ; i++) {

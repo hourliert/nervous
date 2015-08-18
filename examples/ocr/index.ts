@@ -1,4 +1,5 @@
 import {NeuralNetwork, INeuralNetworkConfiguration} from '../../lib/neural-network';
+import {ECostStrategy} from '../../lib/cost';
 
 function convertCharacter (character: string): number[] {
   return character.trim().replace(/\r?\n|\r/g, '').split('').map(x => ((x === '#') ? 1 : 0));
@@ -71,7 +72,8 @@ let nervous = new NeuralNetwork({
     iterations: 100000,
     learningRate: 0.1,
     log: true
-  }
+  },
+  costStrategy: ECostStrategy.CrossEntropy
 });
 
 console.log('----- PRE TRAINING -----');

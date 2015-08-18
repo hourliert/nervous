@@ -3,6 +3,7 @@
 import {Neuron, BiasNeuron, InputNeuron, HiddenNeuron, OutputNeuron} from './neuron';
 import {Synapse, ISynapsesLayer} from './synapse';
 import {IActivationFunctions} from './neural-network';
+import {CostStrategy} from './cost';
 
 
 export class Layer {
@@ -13,8 +14,7 @@ export class Layer {
   protected neurons: Neuron[];
   
   constructor (
-    size: number,
-    activationFunctions: IActivationFunctions
+    size: number
   ) {
     
     this.id = `l_${Layer.currentId++}`;
@@ -69,15 +69,15 @@ export class Layer {
     
   }
   
-  public activate () {
+  public activate (activationFunctions: IActivationFunctions) {
     
-    this.forEachNeuron((n) => n.activate());
+    this.forEachNeuron((n) => n.activate(activationFunctions));
     
   }
   
-  public computeErrors () {
+  public computeErrors (costStrategy: CostStrategy) {
     
-    this.forEachNeuron((n) => n.computeError());
+    this.forEachNeuron((n) => n.computeError(costStrategy));
     
   }
   
@@ -92,17 +92,16 @@ export class Layer {
 export class InputLayer extends Layer {
   
   constructor (
-    size: number,
-    activationFunctions: IActivationFunctions
+    size: number
   ) {
     
-    super(size, activationFunctions);    
+    super(size);    
     
     for (let i = 0; i < size; i++) {
-      this.neurons.push(new InputNeuron(this, i, activationFunctions));    
+      this.neurons.push(new InputNeuron(this, i));    
     } 
     
-    this.neurons.push(new BiasNeuron(this, size, activationFunctions));
+    this.neurons.push(new BiasNeuron(this, size));
     
   }
   
@@ -118,17 +117,16 @@ export class InputLayer extends Layer {
 export class HiddenLayer extends Layer {
   
   constructor (
-    size: number,
-    activationFunctions: IActivationFunctions
+    size: number
   ) {
     
-    super(size, activationFunctions); 
+    super(size); 
     
     for (let i = 0; i < size; i++) {
-      this.neurons.push(new HiddenNeuron(this, i, activationFunctions));    
+      this.neurons.push(new HiddenNeuron(this, i));    
     } 
        
-    this.neurons.push(new BiasNeuron(this, size, activationFunctions));
+    this.neurons.push(new BiasNeuron(this, size));
     
   }
   
@@ -137,14 +135,13 @@ export class HiddenLayer extends Layer {
 export class OutputLayer extends Layer {
   
   constructor (
-    size: number,
-    activationFunctions: IActivationFunctions
+    size: number
   ) {
     
-    super(size, activationFunctions);
+    super(size);
     
     for (let i = 0; i < size; i++) {
-      this.neurons.push(new OutputNeuron(this, i, activationFunctions));    
+      this.neurons.push(new OutputNeuron(this, i));    
     } 
         
   }

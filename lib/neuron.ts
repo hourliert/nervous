@@ -5,7 +5,7 @@ import {IActivationFunctions} from './neural-network';
 import {Layer} from './layer';
 import {Synapse} from './synapse';
 
-import {CostStrategy, QuadraticCost} from './cost';
+import {CostStrategy, QuadraticCost, CrossEntropyCost} from './cost';
 
 export class Neuron {
   public id: string;
@@ -20,15 +20,10 @@ export class Neuron {
   private preActivatedValue: number;
   private error: number;
   
-  private costStrategy: CostStrategy;
-  
   constructor (
     private layer: Layer,
-    position: number,
-    activationFunctions: IActivationFunctions
+    position: number
   ) {
-    
-    this.costStrategy = QuadraticCost;
     
     this.id = `n_${this.layer.id}_${position}`;
     this.A = 0;
@@ -37,9 +32,6 @@ export class Neuron {
     this.inputSynapses = [];
     this.outputSynapses = [];
     
-    this.activation = activationFunctions.activation;
-    this.activationPrime = activationFunctions.activationPrime;
-
   }
   
   get A(): number {
@@ -70,7 +62,7 @@ export class Neuron {
     this.outputSynapses.push(s);
   }
   
-  public activate () {
+  public activate (activationFunctions: IActivationFunctions) {
     
     let sum = 0;
     for (let i = 0 ; i < this.inputSynapses.length ; i++) {
@@ -78,11 +70,11 @@ export class Neuron {
       sum += s.weight * s.neurons.input.A;
     }
     this.Z = sum;
-    this.A = this.activation(sum);
+    this.A = activationFunctions.activation(sum);
     
   }
   
-  public computeError () {
+  public computeError (costStrategy: CostStrategy) {
     
     let delta = 0;
     for (let i = 0 ; i < this.outputSynapses.length ; i++) {
@@ -92,8 +84,7 @@ export class Neuron {
       
     }
     
-    this.error = (<any>this.costStrategy).delta(delta || -this.A, this.Z);
-    // this.error = (delta || -this.A) * this.activationPrime(this.Z);
+    this.error = costStrategy.delta(delta || this.A, this.Z);
     
   }
   
@@ -110,10 +101,9 @@ export class BiasNeuron extends Neuron {
   
   constructor (
     layer: Layer,
-    position: number,
-    activationFunctions: IActivationFunctions
+    position: number
   ) {
-    super(layer, position, activationFunctions);
+    super(layer, position);
     this.A = 1;
   }
   
@@ -129,10 +119,9 @@ export class HiddenNeuron extends Neuron {
   
   constructor (
     layer: Layer,
-    position: number,
-    activationFunctions: IActivationFunctions
+    position: number
   ) {
-    super(layer, position, activationFunctions);
+    super(layer, position);
   }
 }
 
@@ -140,10 +129,9 @@ export class InputNeuron extends Neuron {
   
   constructor (
     layer: Layer,
-    position: number,
-    activationFunctions: IActivationFunctions
+    position: number
   ) {
-    super(layer, position, activationFunctions);
+    super(layer, position);
   }
 }
 
@@ -151,10 +139,9 @@ export class OutputNeuron extends Neuron {
   
   constructor (
     layer: Layer,
-    position: number,
-    activationFunctions: IActivationFunctions
+    position: number
   ) {
-    super(layer, position, activationFunctions);
+    super(layer, position);
   }
 }
 
