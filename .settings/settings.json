@@ -4,6 +4,7 @@
     "test/**/*.js": true,
     "examples/**/*.js": true,
     "build": true,
-    "node_modules": true
+    "node_modules": true,
+    "**/.git": false
   }
 }
