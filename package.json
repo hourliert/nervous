@@ -31,6 +31,7 @@
   "devDependencies": {
     "chai": "^3.2.0",
     "del": "^1.2.0",
+    "git-guppy": "^1.0.0",
     "gulp": "^3.9.0",
     "gulp-bump": "^0.3.1",
     "gulp-filter": "^3.0.0",
@@ -43,6 +44,7 @@
     "gulp-tsd": "0.0.4",
     "gulp-typescript": "^2.8.0",
     "gulp-util": "^3.0.6",
+    "guppy-pre-commit": "^0.2.1",
     "merge-stream": "^0.1.8",
     "mocha": "^2.2.5",
     "run-sequence": "^1.1.2",

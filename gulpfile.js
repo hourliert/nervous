@@ -13,7 +13,8 @@ var gulp        = require('gulp'),
     runSequence = require('run-sequence'),
     tsd         = require('gulp-tsd'),
     nodemon     = require('gulp-nodemon'),
-    shell       = require('gulp-shell');
+    shell       = require('gulp-shell'),
+    guppy       = require('git-guppy')(gulp);
     
 var PATHS = {
   src: 'lib',
@@ -24,6 +25,16 @@ var PATHS = {
 };
  
 var tsProject = ts.createProject('tsconfig.json', { sortOutput: true });
+ 
+ /**
+  * Git Hooks
+  */
+gulp.task('pre-commit', ['add']);
+
+gulp.task('add', ['default'], function(){
+  return gulp.src('.')
+    .pipe(git.add({options: '-A'}));
+});
  
 /**
  * Dev tasks
@@ -159,10 +170,9 @@ gulp.task('clean', ['clean:dev', 'clean:prod', 'clean:tsd']);
  */
 gulp.task('default', function (cb) {
   runSequence(
-    'clean',
-    'tsd',
-    'test',
-    'scripts:prod'
+    'ci',
+    'scripts:prod',
+    cb
   );
 });
 
@@ -173,7 +183,8 @@ gulp.task('ci', function (cb) {
   runSequence(
     'clean',
     'tsd',
-    'test'
+    'test',
+    cb
   );
 });
 
