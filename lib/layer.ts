@@ -81,7 +81,7 @@ export class Layer {
     
   }
   
-  public computeDeltas () {
+  public computeGradients () {
     
     this.forEachNeuron((n) => n.backPropagate());
     
