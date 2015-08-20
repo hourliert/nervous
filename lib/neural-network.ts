@@ -203,7 +203,7 @@ export class NeuralNetwork {
       }
       //compute dJdW for all synapses layer
       for (let i = 0 ; i < this.neuronsLayers.length  ; i++) {
-        this.neuronsLayers[i].computeDeltas();
+        this.neuronsLayers[i].computeGradients();
       }
 
     }
