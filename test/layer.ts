@@ -1,6 +1,7 @@
 /// <reference path="../lib//all.d.ts" />
 
-import chai = require('chai');
+import * as chai from 'chai';
+import * as sinon from 'sinon';
 
 let expect = chai.expect;
 
@@ -64,31 +65,64 @@ describe('Layer', () => {
     });
     
     it ('should apply a function on each neurons', () => {
-      // TODO need spies to test this methods
-      let f = x => 1;
-      output.forEachNeuron(f);
+      let cb = sinon.spy();
+      output.forEachNeuron(cb);
+      
+      expect(cb.callCount).to.be.equal(size);
+      for (let i = 0; i < size; i++) {
+        expect(cb.calledWith(output.neurons[i], i)).to.be.ok;
+      }
     });
     
     it ('should activate on each neurons', () => {
-      // TODO need spies to test this methods or mocks
       let activations = {
           activation: x => 1,
           activationPrime: x => 2
         };
+      let spies = [];
+      
+      for (let i = 0; i < size; i++) {
+        spies.push(sinon.spy(output.neurons[i], 'activate'));
+      }
+        
       output.activate(activations);
+      
+      for (let i = 0; i < size; i++) {
+        expect(spies[i].calledOnce).to.be.ok;
+        expect(spies[i].calledWith(activations)).to.be.ok;
+      }
     });
     
     it ('should compute error of each neurons', () => {
-      // TODO need spies to test this methods or mocks
       let cost = {
-          delta: x => 1
-        };
+            delta: x => 1
+          };
+      let spies = [];
+      
+      for (let i = 0; i < size; i++) {
+        spies.push(sinon.spy(output.neurons[i], 'computeError'));
+      }
+        
       output.computeErrors(cost);
+      
+      for (let i = 0; i < size; i++) {
+        expect(spies[i].calledOnce).to.be.ok;
+        expect(spies[i].calledWith(cost)).to.be.ok;
+      }
     });
     
     it ('should compute gradient of each neurons', () => {
-      // TODO need spies to test this methods or mocks
+      let spies = [];
+      
+      for (let i = 0; i < size; i++) {
+        spies.push(sinon.spy(output.neurons[i], 'backPropagate'));
+      }
+        
       output.computeGradients();
+      
+      for (let i = 0; i < size; i++) {
+        expect(spies[i].calledOnce).to.be.ok;
+      }
     });
     
   });

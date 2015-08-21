@@ -48,6 +48,7 @@
     "merge-stream": "^0.1.8",
     "mocha": "^2.2.5",
     "run-sequence": "^1.1.2",
+    "sinon": "^1.16.1",
     "tsd": "^0.6.3",
     "typescript": "^1.5.3"
   },
