@@ -212,7 +212,7 @@ export class NeuralNetwork {
 
   }
 
-  public adjustWeigths (synapses: ISynapsesLayer[], batchSize: number, dataSize: number) {
+  public adjustWeights (synapses: ISynapsesLayer[], batchSize: number, dataSize: number) {
 
     if (synapses.length !== this.synapsesLayers.length) {
       throw new Error(`The number of synapses layers differs.`);
@@ -246,7 +246,7 @@ export class NeuralNetwork {
       let batch = data.slice(0, batchSize), 
           synapses = this.backward(batch);
           
-      this.adjustWeigths(synapses, batchSize, data.length);
+      this.adjustWeights(synapses, batchSize, data.length);
       
       if (this.config.trainingOptions.log && (i % (iterations/100) === 0)) {
         console.info(`Progress ${i / iterations}, cost: ${this.cost(data)}`);
@@ -279,7 +279,7 @@ export function computeNumericalGradients (n: NeuralNetwork, data: ITrainingData
     loss2 = n.cost(data);
     n.weights = sub(initialWeights, perturb);
     loss1 = n.cost(data)
-    gradients[k] = sum(multiplyByScalar(sub(loss2, loss1), 1 / (epsilon * 2)));
+    gradients[k] = data.length * sum(multiplyByScalar(sub([loss2], [loss1]), 1 / (epsilon * 2)));
     perturb[k] = 0;
 
   }
@@ -287,67 +287,3 @@ export function computeNumericalGradients (n: NeuralNetwork, data: ITrainingData
   return gradients;
 
 }
-
-// let n = new NeuralNetwork({
-//   inputLayerSize: 2,
-//   hiddenLayers: [3],
-//   outputLayerSize: 1,
-//   trainingOptions: {
-//     regularization: 0.0001,
-//     iterations: 1000000,
-//     learningRate: 1,
-//     log: true
-//   }
-// });
-
-// console.log('----- Neural Network -----');
-// console.log(n);
-
-// let data: ITrainingData = [
-//   {
-//     input: [3.0 / 10.0, 5.0 / 10.0],
-//     output: [75.0 / 100.0]
-//   },
-//   {
-//     input: [5.0 / 10.0, 1.0 / 10.0],
-//     output: [82.0 / 100.0]
-//   },
-//   {
-//     input: [10.0 / 10.0, 2.0 / 10.0],
-//     output: [93.0 / 100.0]
-//   },
-//   {
-//     input: [6.0 / 10.0, 3.0 / 10.0],
-//     output: [81.0 / 100.0]
-//   }
-// ];
-
-// let gradients = n.getGradients(data),
-//     numGradients = computeNumericalGradients(n, data);
-
-// //biases neurons regulation
-// numGradients.forEach((x, i) => {
-//   if (x === 0) {
-//     numGradients[i] = gradients[i];
-//   }
-// });
-
-// let normResult = rootMeanSquare(sub(gradients, numGradients)) / rootMeanSquare(add(gradients, numGradients));
-
-// console.log('----- Gradient comparaison -----');
-// console.info(normResult);
-
-
-// console.info('----- PRE TRAINING -----');
-// console.log(n.forward(data));
-// console.log(n.cost(data));
-
-// let time = +new Date();
-
-// n.train(data);
-
-// console.log(+new Date() - time, 'ms');
-
-// console.info('----- POST TRAINING -----');
-// console.log(n.forward(data));
-// console.log(n.cost(data));

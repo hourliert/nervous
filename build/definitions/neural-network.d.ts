@@ -44,7 +44,7 @@ export declare class NeuralNetwork {
     forward(data: ITrainingData): number[][];
     cost(data: ITrainingData): number;
     backward(data: ITrainingData): ISynapsesLayer[];
-    adjustWeigths(synapses: ISynapsesLayer[], batchSize: number, dataSize: number): void;
+    adjustWeights(synapses: ISynapsesLayer[], batchSize: number, dataSize: number): void;
     train(data: ITrainingData, options?: ITrainingConfiguration): ITrainingOutput;
 }
 export declare function computeNumericalGradients(n: NeuralNetwork, data: ITrainingData): number[];
