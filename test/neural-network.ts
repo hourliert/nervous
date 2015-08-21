@@ -1,6 +1,7 @@
 /// <reference path="../lib//all.d.ts" />
 
-import chai = require('chai');
+import * as chai from 'chai';
+import * as sinon from 'sinon';
 
 import {NeuralNetwork, computeNumericalGradients} from '../lib/neural-network';
 import {rootMeanSquare, sub, add} from 'nervous-array';
@@ -72,30 +73,77 @@ describe('Neural Network', () => {
   });
   
   it ('should apply a function on each synapse', () => {
-    //TODO need spies function
-    let func = x => 2*x;
-    nn.forEachSynapse(func);
+    let spy = sinon.spy();
+    nn.forEachSynapse(spy);
+    
+    expect(spy.called).to.be.ok;
+    for (let i = 0; i < nn.synapsesLayers.length; i++) {
+      for (let j = 0; j < nn.synapsesLayers[i].length; j++) {
+        expect(spy.calledWith(nn.synapsesLayers[i][j], i, j)).to.be.ok;
+      }
+    }
   });
   
   it ('should forward the data through the network', () => {
+    let spies = [];
+    
+    for (let i = 1 ; i < nn.neuronsLayers.length ; i++) {
+      spies.push(sinon.spy(nn.neuronsLayers[i], 'activate'));
+    }
+    
     let res = nn.forward(data);
     expect(res.length).to.be.equal(4);
     expect(res[0].length).to.be.equal(1);
     expect(res[1].length).to.be.equal(1);
     expect(res[2].length).to.be.equal(1);
     expect(res[3].length).to.be.equal(1);
+    
+    for (let i = 1 ; i < spies.length ; i++) {
+      expect(spies[i].called).to.be.ok;
+    } 
   });
   
   it ('should compute the cost to the origin data', () => {
-    expect(nn.cost(data)).to.be.a('number');
+    let spyForward = sinon.spy(nn, 'forward'),
+        spyCost = sinon.stub(nn.costStrategy, 'fn');
+        
+    spyCost.onCall(0).returns(1);
+    spyCost.onCall(1).returns(2);
+    spyCost.onCall(2).returns(3);
+    spyCost.returns(4);
+    
+    let res = nn.cost(data);
+    expect(res).to.be.a('number');
+    expect(res).to.be.equal(2.5);
+    expect(spyForward.called).to.be.ok;
+    expect(spyCost.called).to.be.ok;
   });
   
   it ('should backpropagate some data in the network', () => {
+    let spyForward = sinon.spy(nn, 'forward');
+    let spiesErrors = [],
+        spiesGradients = [];
+    
+    for (let i = nn.neuronsLayers.length - 1 ; i >= 1 ; i--) {
+      spiesErrors.push(sinon.spy(nn.neuronsLayers[i], 'computeErrors'));
+    }
+    for (let i = 0 ; i < nn.neuronsLayers.length  ; i++) {
+      spiesGradients.push(sinon.spy(nn.neuronsLayers[i], 'computeGradients'));
+    }
+
+    
     let res = nn.backward(data);
     
     expect(res.length).to.be.equal(2);
     expect(res[0].length).to.be.equal(12);
     expect(res[1].length).to.be.equal(4);
+    
+    for (let i = 0; i < spiesErrors.length ; i ++) {
+      expect(spiesErrors[i].called).to.be.ok;
+    }
+    for (let i = 0; i < spiesGradients.length ; i ++) {
+      expect(spiesGradients[i].called).to.be.ok;
+    }
   });
   
   it ('should adjust the network weights', () => {
@@ -103,16 +151,27 @@ describe('Neural Network', () => {
     
     for (let i = 0 ; i < 16; i++) {
       let index = (i < 12) ? 0 : 1;
-      synapses[index].push(i);
+      synapses[index].push(1);
     }
     
     nn.adjustWeights(synapses, 1, 1);
+    
+    for (let i = 0 ; i < 16; i++) {
+      let index = (i < 12) ? 0 : 1,
+          j = (i < 12) ? i : (15 - i);
+      expect(nn.synapsesLayers[index][j].weight).to.be.a('number');
+      expect(nn.synapsesLayers[index][j].gradient).to.be.equal(0);
+    }
   });
   
   it ('should train the network', () => {
-    let res = nn.train(data);
+    let res, 
+        spy = sinon.spy(nn, 'adjustWeights');
+    
+    res = nn.train(data);
     
     expect(res.error).to.be.a('number');
+    expect(spy.callCount).to.be.equal(1000);
   });
   
   it ('should verify that gradients are well computed', () => {
@@ -129,7 +188,6 @@ describe('Neural Network', () => {
     let normResult = rootMeanSquare(sub(gradients, numGradients)) / rootMeanSquare(add(gradients, numGradients));
     expect(normResult).to.be.a('number');
     expect(normResult).to.be.below(1e-8);
-
   });
   
 });
