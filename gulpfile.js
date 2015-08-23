@@ -26,7 +26,7 @@ var PATHS = {
  
 var tsProject = ts.createProject('tsconfig.json', { sortOutput: true });
  
- /**
+/**
   * Git Hooks
   */
 gulp.task('pre-commit', ['add']);
