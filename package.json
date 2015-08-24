@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "description": "Neural Network.",
   "typescript": {
-    "definition": "build/definitions/nervous.d.ts"
+    "definition": "build/nervous.d.ts"
   },
   "main": "index.js",
   "directories": {
