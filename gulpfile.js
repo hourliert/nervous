@@ -37,6 +37,13 @@ gulp.task('add', ['default'], function(){
 });
  
 /**
+ * Defintions files
+ */
+gulp.task('definitions', shell.task([
+  'node scripts/dts-bundle.js'
+]));
+ 
+/**
  * Dev tasks
  */
 gulp.task('tsd:install', function (callback) {
@@ -147,10 +154,10 @@ gulp.task('scripts:prod', function() {
       .pipe(ts(tsProject));
    
   return merge([
-    tsResult.dts.pipe(gulp.dest(PATHS.build + '/definitions')),
+    tsResult.dts.pipe(gulp.dest(PATHS.build)),
     tsResult.js
       .pipe(sourcemaps.write())
-      .pipe(gulp.dest(PATHS.build + '/js'))
+      .pipe(gulp.dest(PATHS.build))
   ]);
 }); 
 
@@ -172,6 +179,7 @@ gulp.task('default', function (cb) {
   runSequence(
     'ci',
     'scripts:prod',
+    'definitions',
     cb
   );
 });

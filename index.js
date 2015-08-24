@@ -1,1 +1,1 @@
-module.exports = require('./build/js/neural-network');
+module.exports = require('./build/nervous');

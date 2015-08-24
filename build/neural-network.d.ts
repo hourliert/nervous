@@ -1,4 +1,4 @@
-/// <reference path="all.d.ts" />
+/// <reference path="../lib/all.d.ts" />
 import { Synapse, ISynapsesLayer } from './synapse';
 import { ECostStrategy } from './cost';
 export interface IActivationFunctions {

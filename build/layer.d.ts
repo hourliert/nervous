@@ -1,4 +1,4 @@
-/// <reference path="all.d.ts" />
+/// <reference path="../lib/all.d.ts" />
 import { Neuron } from './neuron';
 import { ISynapsesLayer } from './synapse';
 import { IActivationFunctions } from './neural-network';

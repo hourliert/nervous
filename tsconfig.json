@@ -5,7 +5,8 @@
     "sourceMap": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "declaration": true
+    "declaration": true,
+    "outDir": "build"
   },
   "filesGlob": [
     "lib/**/*.ts",  
