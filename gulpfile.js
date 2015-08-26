@@ -14,7 +14,9 @@ var gulp        = require('gulp'),
     tsd         = require('gulp-tsd'),
     nodemon     = require('gulp-nodemon'),
     shell       = require('gulp-shell'),
-    guppy       = require('git-guppy')(gulp);
+    istanbul    = require('gulp-istanbul');
+
+require('git-guppy')(gulp);
     
 var PATHS = {
   src: 'lib',
@@ -91,7 +93,7 @@ gulp.task('run:ocr', ['scripts:dev'], function() {
     })
     .on('exit', function () {
       process.exit(0);
-    });;
+    });
 });
 
 gulp.task('run:ocr:watch', ['scripts:dev'], function() {
@@ -108,7 +110,7 @@ gulp.task('run:gates', ['scripts:dev'], function() {
     })
     .on('exit', function () {
       process.exit(0);
-    });;
+    });
 });
 
 gulp.task('run:gates:watch', ['scripts:dev'], function() {
@@ -129,11 +131,21 @@ gulp.task('clean:dev', function (cb) {
 /**
  * Tests tasks
  */
-gulp.task('test', ['scripts:dev'], function () {
-  return gulp.src(PATHS.test + '/**/*.js', {read: false})
-    .pipe(mocha({
-      reporter: 'spec'
-    }));
+gulp.task('test', ['scripts:dev'], function (cb) {
+  gulp.src([
+    PATHS.src + '/**/*.js',
+    '!' + PATHS.src + '/polyfills/*'
+  ])
+    .pipe(istanbul())
+    .pipe(istanbul.hookRequire())
+    .on('finish', function () {
+      gulp.src(PATHS.test + '/**/*.js')
+        .pipe(mocha({
+          reporter: 'spec'
+        }))
+        .pipe(istanbul.writeReports()) // Creating the reports after tests ran
+        .on('end', cb);
+    });
 });
 
 gulp.task('test:watch', ['test'], function() {
