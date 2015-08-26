@@ -8,7 +8,9 @@ import {rootMeanSquare, sub, add} from 'nervous-array';
 
 let expect = chai.expect;
 
-describe('Neural Network', () => {
+describe('Neural Network', function() {
+  this.timeout(10000);    
+  
   let nn,
       config,
       data;
@@ -38,7 +40,7 @@ describe('Neural Network', () => {
       outputLayerSize: 1,
       trainingOptions: {
         regularization: 0,
-        iterations: 1000,
+        iterations: 100,
         learningRate: 1,
         log: false
       },
@@ -171,7 +173,7 @@ describe('Neural Network', () => {
     res = nn.train(data);
     
     expect(res.error).to.be.a('number');
-    expect(spy.callCount).to.be.equal(1000);
+    expect(spy.callCount).to.be.equal(100);
   });
   
   it ('should verify that gradients are well computed', () => {
