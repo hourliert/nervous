@@ -53,6 +53,20 @@ describe('Layer', () => {
         let element = output.neuronsValue[i];
         expect(element).to.equal(i);
       }
+      
+      let exception: Error = undefined;
+      try {
+        output.neuronsValue = [
+          0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
+        ];
+      } catch (e) {
+        exception = e;
+      } finally {
+        expect(exception).to.be.an.instanceOf(Error);
+        expect(exception.message).to.be.equal('The size of the input 13 differs fron the number of neurons 10');
+      }
+      
+      
     });
     
     it ('should get the correct number of neurons', () => {

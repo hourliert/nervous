@@ -40,9 +40,10 @@ describe('Neural Network', function() {
       outputLayerSize: 1,
       trainingOptions: {
         regularization: 0,
-        iterations: 100,
+        iterations: 10,
         learningRate: 1,
-        log: false
+        batchSize: 2,        
+        log: true
       },
       costStrategy: 0
     };
@@ -51,6 +52,34 @@ describe('Neural Network', function() {
   
   it ('should be defined', () => {
     expect(nn).to.be.ok;
+  });
+  
+  it ('should cover default parameters of neural network constructor', () => {
+    let config = <any>{
+      inputLayerSize: 2,
+      hiddenLayers: [3],
+      outputLayerSize: 1,
+      trainingOptions: {
+        regularization: 0,
+        iterations: 100,
+        learningRate: 1,
+        log: false
+      },
+      costStrategy: 0
+    };
+    expect(new NeuralNetwork(config)).to.be.ok;
+    config.costStrategy = 1;
+    expect(new NeuralNetwork(config)).to.be.ok;
+    config.trainingOptions.iterations = null;
+    expect(new NeuralNetwork(config)).to.be.ok;
+    config.hiddenLayers = 3;
+    expect(new NeuralNetwork(config)).to.be.ok;
+    config.trainingOptions.regularization = null;
+    expect(new NeuralNetwork(config)).to.be.ok;
+    config.trainingOptions.learningRate = null;
+    expect(new NeuralNetwork(config)).to.be.ok;
+    config.trainingOptions = null;
+    expect(new NeuralNetwork(config)).to.be.ok;
   });
   
   it ('should get network weights', () => {
@@ -68,6 +97,26 @@ describe('Neural Network', function() {
     
     nn.weights = weights;
     expect(nn.weights).to.deep.equal(weights);
+    
+    let weights2 = [];
+    
+    // with biases
+    for (let i = 0; i < 15; i++) {
+      weights2.push(i);
+    }
+
+    // how could I test that a setter/getter throw with chai ?
+    // i couldn't .bind the setter...
+    let exception: Error = undefined;
+    try {
+      nn.weights = weights2;
+    } catch (e) {
+      exception = e;
+      expect(e).to.be.ok;
+    } finally {
+      expect(exception).to.be.an.instanceOf(Error);
+      expect(exception.message).to.be.equal('The number of synapses differs.');
+    }   
   });
   
   it ('should get the network gradients', () => {
@@ -149,8 +198,11 @@ describe('Neural Network', function() {
   });
   
   it ('should adjust the network weights', () => {
-    let synapses = [[], []];
+    let synapses = [[], []],
+        curLayer = 0,
+        exception: Error = undefined;
     
+    //2 synapses layers
     for (let i = 0 ; i < 16; i++) {
       let index = (i < 12) ? 0 : 1;
       synapses[index].push(1);
@@ -164,6 +216,49 @@ describe('Neural Network', function() {
       expect(nn.synapsesLayers[index][j].weight).to.be.a('number');
       expect(nn.synapsesLayers[index][j].gradient).to.be.equal(0);
     }
+    
+    synapses = [[], [], [], []];
+    curLayer = 0;
+    //4 synapses layers
+    for (let i = 0 ; i < 16; i++) {
+      if (i % 6 === 0) {
+        curLayer++;
+      }
+      synapses[curLayer].push(1);
+    }
+    
+    exception = undefined;
+    try {
+      nn.adjustWeights(synapses, 1, 1);
+    } catch (e) {
+      exception = e;
+      expect(e).to.be.ok;
+    } finally {
+      expect(exception).to.be.an.instanceOf(Error);
+      expect(exception.message).to.be.equal('The number of synapses layers differs.');
+    }
+    
+    synapses = [[], []];
+    curLayer = 0;
+    //4 synapses layers
+    for (let i = 0 ; i < 40; i++) {
+      let index = (i < 12) ? 0 : 1;
+      synapses[index].push(1);
+    }
+    
+    exception = undefined;
+    try {
+      nn.adjustWeights(synapses, 1, 1);
+    } catch (e) {
+      exception = e;
+      expect(e).to.be.ok;
+    } finally {
+      expect(exception).to.be.an.instanceOf(Error);
+      expect(exception.message).to.be.equal('The number of synapses in the 1 layer differs');
+    }  
+
+    
+    
   });
   
   it ('should train the network', () => {
@@ -173,7 +268,7 @@ describe('Neural Network', function() {
     res = nn.train(data);
     
     expect(res.error).to.be.a('number');
-    expect(spy.callCount).to.be.equal(100);
+    expect(spy.callCount).to.be.equal(10);
   });
   
   it ('should verify that gradients are well computed', () => {

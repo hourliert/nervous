@@ -54,7 +54,7 @@ export class NeuralNetwork {
     private config: INeuralNetworkConfiguration
   ) {
     
-    this.config.hiddenLayers = this.config.hiddenLayers || [this.config.inputLayerSize];
+    this.config.hiddenLayers = <number[]>((typeof this.config.hiddenLayers === 'number') ? [this.config.hiddenLayers] : this.config.hiddenLayers);
     
     this.config.trainingOptions = this.config.trainingOptions || {};
     this.config.trainingOptions.iterations = this.config.trainingOptions.iterations || 10000;
