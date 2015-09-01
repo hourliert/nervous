@@ -17,8 +17,6 @@ engines:
 # to turn off an engine, set enabled to `false` or remove it
   eslint:
     enabled: true
-  csslint:
-    enabled: true
   fixme:
     enabled: true
 
@@ -32,9 +30,6 @@ engines:
 ratings:
   paths:
   - build/**/*.js
-#   - lib/**
-#   - "**.rb"
-#   - "**.go"
 
 # You can globally exclude files from being analyzed by any engine using the
 # exclude_paths key.
@@ -42,4 +37,5 @@ ratings:
 exclude_paths:
 - **/*.ts
 - **/*.json
-#- vendor/**/*
+- **/*.md
+- LISCENCE
