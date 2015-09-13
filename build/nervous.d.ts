@@ -17,6 +17,8 @@ declare module '__nervous/neural-network' {
         learningRate?: number;
         iterations?: number;
         log?: boolean;
+        logForward?: boolean;
+        logBackward?: boolean;
     }
     export interface INeuralNetworkConfiguration {
         inputLayerSize: number;
