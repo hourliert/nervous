@@ -248,7 +248,7 @@ export class NeuralNetwork {
           
       this.adjustWeights(synapses, batchSize, data.length);
       
-      if (this.config.trainingOptions.log && (i % (iterations/100) === 0)) {
+      if (this.config.trainingOptions.log && i % 2 === 0) {
         console.info(`Progress ${i / iterations}, cost: ${this.cost(data)}`);
       }
     
