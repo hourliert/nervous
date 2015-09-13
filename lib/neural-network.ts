@@ -158,6 +158,10 @@ export class NeuralNetwork {
       //retrieve output neuron value
       ret.push(this.outputLayer.neuronsValue);
       
+      if (this.config.trainingOptions.log && k % 2 === 0) {
+        console.info(`Forward Progress ${k / data.length}`);
+      }
+      
     }
     return ret;
     
@@ -204,6 +208,10 @@ export class NeuralNetwork {
       //compute dJdW for all synapses layer
       for (let i = 0 ; i < this.neuronsLayers.length  ; i++) {
         this.neuronsLayers[i].computeGradients();
+      }
+      
+      if (this.config.trainingOptions.log && k % 2 === 0) {
+        console.info(`Backward Progress ${k / data.length}`);
       }
 
     }
